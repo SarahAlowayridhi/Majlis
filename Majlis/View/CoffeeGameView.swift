@@ -8,10 +8,16 @@
 import SwiftUI
 
 struct CoffeeGameView: View {
+
+    // نسبة التعبئة
     @State private var fillAmount: CGFloat = 0.0
     
+    // تايمر التعبئة
+    @State private var fillTimer: Timer?
+
     var body: some View {
         ZStack {
+            
             // الخلفية
             Color(red: 0.98, green: 0.96, blue: 0.92)
                 .ignoresSafeArea()
@@ -37,26 +43,28 @@ struct CoffeeGameView: View {
                 
                 Spacer()
                 
-                // ⭐ الفنجال + الدلة (متمركزين بالوسط)
+                // ⭐ الفنجال + الدلة
                 HStack(alignment: .bottom, spacing: 30) {
                     
                     Image("redcup")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 90)
-                        .offset(x: 60) // ← قربناه من الدلة
+                        .offset(x: 60)
                     
-                    Button {
-                        withAnimation(.easeInOut) {
-                            fillAmount = fillAmount >= 1.0 ? 0.0 : fillAmount + 0.1
-                        }
-                    } label: {
-                        Image("dallah")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 240)
-                    }
-                    .buttonStyle(.plain)
+                    Image("dallah")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 240)
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { _ in
+                                    startFilling()
+                                }
+                                .onEnded { _ in
+                                    stopFilling()
+                                }
+                        )
                 }
                 
                 Spacer()
@@ -74,6 +82,28 @@ struct CoffeeGameView: View {
                 .padding(.bottom, 50)
             }
         }
+    }
+    
+    // MARK: - Logic
+    
+    func startFilling() {
+        guard fillTimer == nil else { return }
+        
+        fillTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
+            withAnimation(.linear(duration: 0.05)) {
+                if fillAmount < 1.0 {
+                    fillAmount += 0.01
+                } else {
+                    // 🔁 إذا وصل للنهاية يرجع من البداية
+                    fillAmount = 0.0
+                }
+            }
+        }
+    }
+    
+    func stopFilling() {
+        fillTimer?.invalidate()
+        fillTimer = nil
     }
 }
 
