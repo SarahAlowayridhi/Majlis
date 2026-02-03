@@ -14,6 +14,9 @@ struct CoffeeGameView: View {
     
     // تايمر التعبئة
     @State private var fillTimer: Timer?
+    
+    // ثلث الخط
+    let threshold: CGFloat = 0.33
 
     var body: some View {
         ZStack {
@@ -76,7 +79,7 @@ struct CoffeeGameView: View {
                         .frame(width: 300, height: 24)
                     
                     Capsule()
-                        .fill(Color.brown)
+                        .fill(progressColor) // 👈 اللون يتغير هنا
                         .frame(width: 300 * fillAmount, height: 24)
                 }
                 .padding(.bottom, 50)
@@ -94,7 +97,6 @@ struct CoffeeGameView: View {
                 if fillAmount < 1.0 {
                     fillAmount += 0.01
                 } else {
-                    // 🔁 إذا وصل للنهاية يرجع من البداية
                     fillAmount = 0.0
                 }
             }
@@ -104,6 +106,17 @@ struct CoffeeGameView: View {
     func stopFilling() {
         fillTimer?.invalidate()
         fillTimer = nil
+    }
+    
+    // MARK: - لون الشريط
+    var progressColor: Color {
+        if fillAmount >= threshold && fillAmount <= threshold + 0.02 {
+            return .green          // 🟢 عند الثلث تقريبًا
+        } else if fillAmount > threshold {
+            return .red            // 🔴 تعدّى الثلث
+        } else {
+            return .brown          // 🤎 قبل الثلث
+        }
     }
 }
 
