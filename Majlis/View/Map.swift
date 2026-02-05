@@ -9,6 +9,9 @@ import SwiftUI
 
 struct ContentView: View {
 
+    // Swipe state
+    @State private var selectedPage = 0
+
     var body: some View {
         ZStack {
 
@@ -46,18 +49,76 @@ struct ContentView: View {
 
                 Spacer(minLength: 50)
 
-                // Title
-                Text("المنطقة الوسطى")
-                    .font(.title3)
-                    .foregroundColor(.black)
+                // Title + Map (Swipe)
+                TabView(selection: $selectedPage) {
 
-                Spacer(minLength: 30)
+                    // Central Region
+                    VStack(spacing: 30) {
+                        Text("المنطقة الوسطى")
+                            .font(.title3)
+                            .foregroundColor(.black)
 
-                // Map
-                Image("MapCentral")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: 300)
+                        Image("MapCentral")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 300)
+                    }
+                    .tag(0)
+
+                    // East Region
+                    VStack(spacing: 30) {
+                        Text("المنطقة الشرقية")
+                            .font(.title3)
+                            .foregroundColor(.black)
+
+                        Image("MapEast")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 300)
+                    }
+                    .tag(1)
+
+                    // South Region
+                    VStack(spacing: 30) {
+                        Text("المنطقة الجنوبية")
+                            .font(.title3)
+                            .foregroundColor(.black)
+
+                        Image("MapSouth")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 300)
+                    }
+                    .tag(2)
+
+                    // West Region
+                    VStack(spacing: 30) {
+                        Text("المنطقة الغربية")
+                            .font(.title3)
+                            .foregroundColor(.black)
+
+                        Image("MapWest")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 300)
+                    }
+                    .tag(3)
+
+                    // North Region
+                    VStack(spacing: 30) {
+                        Text("المنطقة الشمالية")
+                            .font(.title3)
+                            .foregroundColor(.black)
+
+                        Image("MapNorth")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 300)
+                    }
+                    .tag(4)
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(height: 380)
 
                 Spacer()
 
@@ -75,9 +136,10 @@ struct ContentView: View {
     }
 }
 
-//  SF Symbol - icons
+// MARK: - SF Symbol Buttons
 struct CircleButton: View {
     var system: String
+
     var body: some View {
         Button(action: {}) {
             Image(systemName: system)
@@ -89,8 +151,9 @@ struct CircleButton: View {
     }
 }
 
-// triangle shape for decoration
+// MARK: - Triangle Shape
 struct BottomTriangle: Shape {
+
     func path(in rect: CGRect) -> Path {
         var path = Path()
         path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
