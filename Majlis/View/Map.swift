@@ -52,7 +52,7 @@ struct ContentView: View {
                 // Title + Map (Swipe)
                 TabView(selection: $selectedPage) {
 
-                    // Central Region
+                    // Central
                     VStack(spacing: 30) {
                         Text("المنطقة الوسطى")
                             .font(.title3)
@@ -65,7 +65,7 @@ struct ContentView: View {
                     }
                     .tag(0)
 
-                    // East Region
+                    // East
                     VStack(spacing: 30) {
                         Text("المنطقة الشرقية")
                             .font(.title3)
@@ -78,7 +78,7 @@ struct ContentView: View {
                     }
                     .tag(1)
 
-                    // South Region
+                    // South
                     VStack(spacing: 30) {
                         Text("المنطقة الجنوبية")
                             .font(.title3)
@@ -91,7 +91,7 @@ struct ContentView: View {
                     }
                     .tag(2)
 
-                    // West Region
+                    // West
                     VStack(spacing: 30) {
                         Text("المنطقة الغربية")
                             .font(.title3)
@@ -104,7 +104,7 @@ struct ContentView: View {
                     }
                     .tag(3)
 
-                    // North Region
+                    // North
                     VStack(spacing: 30) {
                         Text("المنطقة الشمالية")
                             .font(.title3)
@@ -119,6 +119,20 @@ struct ContentView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: 380)
+
+                // Swipe Indicator Dots ✅
+                HStack(spacing: 8) {
+                    ForEach(0..<5, id: \.self) { index in
+                        Circle()
+                            .fill(
+                                selectedPage == index
+                                ? Color.brown
+                                : Color.brown.opacity(0.3)
+                            )
+                            .frame(width: 8, height: 8)
+                    }
+                }
+                .padding(.top, 8)
 
                 Spacer()
 
