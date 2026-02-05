@@ -17,6 +17,9 @@ struct CoffeeGameView: View {
     
     // ثلث الخط
     let threshold: CGFloat = 0.33
+    
+    // ⭐ أسماء صور الخيارات من Assets
+    let coffeeOptions = ["choose", "chosse right", "choose wrong"]
 
     var body: some View {
         ZStack {
@@ -27,18 +30,19 @@ struct CoffeeGameView: View {
             
             VStack {
                 
-                // الأزرار الدائرية بالأعلى
-                HStack(spacing: 20) {
-                    ForEach(1...3, id: \.self) { _ in
-                        Button(action: {}) {
-                            Circle()
-                                .fill(Color.brown.opacity(0.8))
-                                .frame(width: 50, height: 50)
-                                .overlay(
-                                    Image(systemName: "plus")
-                                        .foregroundColor(.white)
-                                )
-                                .shadow(radius: 3)
+                // MARK: - خيارات الصور بالأعلى
+                HStack(spacing: 28) {
+                    
+                    ForEach(coffeeOptions, id: \.self) { imageName in
+                        
+                        Button(action: {
+                            print("\(imageName) tapped")
+                        }) {
+                            Image(imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 70, height: 70) // 👈 كبرناها
+                                .shadow(radius: 2)
                         }
                     }
                 }
@@ -46,7 +50,7 @@ struct CoffeeGameView: View {
                 
                 Spacer()
                 
-                // ⭐ الفنجال + الدلة
+                // MARK: - الفنجال + الدلة
                 HStack(alignment: .bottom, spacing: 30) {
                     
                     Image("redcup")
@@ -72,14 +76,15 @@ struct CoffeeGameView: View {
                 
                 Spacer()
                 
-                // شريط التعبئة
+                // MARK: - شريط التعبئة
                 ZStack(alignment: .leading) {
+                    
                     Capsule()
                         .fill(Color.gray.opacity(0.2))
                         .frame(width: 300, height: 24)
                     
                     Capsule()
-                        .fill(progressColor) // 👈 اللون يتغير هنا
+                        .fill(progressColor)
                         .frame(width: 300 * fillAmount, height: 24)
                 }
                 .padding(.bottom, 50)
@@ -109,16 +114,19 @@ struct CoffeeGameView: View {
     }
     
     // MARK: - لون الشريط
+    
     var progressColor: Color {
         if fillAmount >= threshold && fillAmount <= threshold + 0.02 {
-            return .green          // 🟢 عند الثلث تقريبًا
+            return .green
         } else if fillAmount > threshold {
-            return .red            // 🔴 تعدّى الثلث
+            return .red
         } else {
-            return .brown          // 🤎 قبل الثلث
+            return .brown
         }
     }
 }
+
+// MARK: - Preview
 
 struct CoffeeGameView_Previews: PreviewProvider {
     static var previews: some View {
