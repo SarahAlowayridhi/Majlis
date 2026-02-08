@@ -5,17 +5,15 @@
 //  Created by Ruba Arif on 17/08/1447 AH.
 
 
-
 import SwiftUI
 
 struct ContentView: View {
 
     // MARK: - ViewModel
-    // هذا هو الـ ViewModel المسؤول عن اختيار المنطقة والتنقّل
     @StateObject private var viewModel = MapViewModel()
     @ObservedObject var majlisVM: MajlisViewModel
+
     // MARK: - UI State
-    // هذا متغير خاص بالـ UI فقط (السحب بين الخرائط)
     @State private var selectedPage = 0
 
     var body: some View {
@@ -31,16 +29,16 @@ struct ContentView: View {
                     // MARK: - Top Controls
                     HStack {
 
-                        // Toggle (UI فقط – بدون منطق)
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.brown, lineWidth: 2)
-                                .frame(width: 80, height: 34)
+                        // MARK: Level Indicator (shapeb + number)
+                        ZStack {
+                            Image("shapeb")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 42, height: 42)
 
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.yellow)
-                                .frame(width: 36, height: 26)
-                                .padding(.leading, 4)
+                            Text("1")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.black)
                         }
 
                         Spacer()
@@ -59,55 +57,25 @@ struct ContentView: View {
                     // MARK: - Map Swipe (Regions)
                     TabView(selection: $selectedPage) {
 
-                        // Central
-                        regionView(
-                            title: "المنطقة الوسطى",
-                            image: "MapCentral"
-                        )
-                        .tag(0)
-                        .onTapGesture {
-                            viewModel.select(.central)
-                        }
+                        regionView(title: "المنطقة الوسطى", image: "MapCentral")
+                            .tag(0)
+                            .onTapGesture { viewModel.select(.central) }
 
-                        // East
-                        regionView(
-                            title: "المنطقة الشرقية",
-                            image: "MapEast"
-                        )
-                        .tag(1)
-                        .onTapGesture {
-                            viewModel.select(.eastern)
-                        }
+                        regionView(title: "المنطقة الشرقية", image: "MapEast")
+                            .tag(1)
+                            .onTapGesture { viewModel.select(.eastern) }
 
-                        // South
-                        regionView(
-                            title: "المنطقة الجنوبية",
-                            image: "MapSouth"
-                        )
-                        .tag(2)
-                        .onTapGesture {
-                            viewModel.select(.southern)
-                        }
+                        regionView(title: "المنطقة الجنوبية", image: "MapSouth")
+                            .tag(2)
+                            .onTapGesture { viewModel.select(.southern) }
 
-                        // West
-                        regionView(
-                            title: "المنطقة الغربية",
-                            image: "MapWest"
-                        )
-                        .tag(3)
-                        .onTapGesture {
-                            viewModel.select(.western)
-                        }
+                        regionView(title: "المنطقة الغربية", image: "MapWest")
+                            .tag(3)
+                            .onTapGesture { viewModel.select(.western) }
 
-                        // North
-                        regionView(
-                            title: "المنطقة الشمالية",
-                            image: "MapNorth"
-                        )
-                        .tag(4)
-                        .onTapGesture {
-                            viewModel.select(.northern)
-                        }
+                        regionView(title: "المنطقة الشمالية", image: "MapNorth")
+                            .tag(4)
+                            .onTapGesture { viewModel.select(.northern) }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     .frame(height: 380)
@@ -140,14 +108,13 @@ struct ContentView: View {
                 }
             }
             // MARK: - Navigation
-            // أول ما تنختار منطقة من الـ ViewModel ننتقل لشاشة Majlis
             .navigationDestination(item: $viewModel.selectedRegion) { region in
                 Majlis(viewModel: majlisVM, region: region)
             }
         }
     }
 
-    // هذا مجرد View لتقليل التكرار
+    // MARK: - Region View
     private func regionView(title: String, image: String) -> some View {
         VStack(spacing: 30) {
             Text(title)
@@ -161,6 +128,8 @@ struct ContentView: View {
         }
     }
 }
+
+// MARK: - Circle Icon Button
 struct CircleButton: View {
     var system: String
 
@@ -174,6 +143,8 @@ struct CircleButton: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
+// MARK: - Bottom Triangle Shape
 struct BottomTriangle: Shape {
 
     func path(in rect: CGRect) -> Path {
@@ -185,10 +156,9 @@ struct BottomTriangle: Shape {
         return path
     }
 }
+
 #Preview {
     let vm = MajlisViewModel()
-    vm.selectedCharacter = .female  // اختياري عشان تشوفين الشخصية
+    vm.selectedCharacter = .female
     return ContentView(majlisVM: vm)
 }
-
-

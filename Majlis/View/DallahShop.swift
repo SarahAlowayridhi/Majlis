@@ -20,20 +20,25 @@ struct DallahSelectionView: View {
 
             VStack {
 
-                // Top 
+                // Top
                 HStack {
 
-                    // Fake toggle
+                    // Level indicator (same toggle place – clear & readable)
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.brown, lineWidth: 2)
-                            .frame(width: 80, height: 34)
 
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.yellow)
-                            .frame(width: 36, height: 26)
-                            .padding(.leading, 4)
+                        ZStack {
+                            Image("shapeb")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 52, height: 36)
+
+                            Text("1")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.black)
+                        }
+                        .padding(.leading, 4)
                     }
+                    .frame(width: 80, height: 34) // مساحة التوغل نفسها
 
                     Spacer()
 
@@ -62,7 +67,7 @@ struct DallahSelectionView: View {
 
                 Spacer(minLength: 20)
 
-                // Page Indicator (fake dots)
+                // Page Indicator
                 HStack(spacing: 8) {
                     Circle()
                         .fill(selectedPage == 0 ? Color.brown : Color.brown.opacity(0.3))
@@ -78,14 +83,12 @@ struct DallahSelectionView: View {
                 // Dallah Swipe
                 TabView(selection: $selectedPage) {
 
-                    // Golden Dallah
                     Image("dallah")
                         .resizable()
                         .scaledToFit()
                         .frame(maxWidth: 220)
                         .tag(0)
 
-                    // Silver Dallah
                     Image("silver")
                         .resizable()
                         .scaledToFit()
@@ -122,8 +125,6 @@ struct DallahSelectionView: View {
         }
     }
 }
-
-
 
 #Preview {
     DallahSelectionView()
