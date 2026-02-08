@@ -3,40 +3,28 @@
 //  Majlis
 //
 //  Created by Sarah Alowayridhi on 13/08/1447 AH.
-
+//
 
 import SwiftUI
 
 struct Majlis: View {
 
+    // ✅ عدّلي أسماء الصور من هنا إذا لزم
+    private enum Assets {
+        static let circleBG = "shapeb"
+        static let finjan = "finjal"
+        static let dates  = "tamer"
+        static let dallah = "dallah"
+        static let incense = "mabkhara"
+    }
+
     @Environment(\.dismiss) private var dismiss
-
-    // هذا الـ VM حق الشخصية + الاسم (جاي من CharacterSelection)
     @ObservedObject var viewModel: MajlisViewModel
-
-    // المنطقة المختارة من الخريطة
     let region: Region
-
-    // أسئلة المنطقة
-    private let questions: [Question]
-
-    // MARK: - Quiz State (داخل المجلس)
-    @State private var currentIndex: Int = 0
-    @State private var selectedAnswerID: UUID? = nil
-    @State private var lastAnswerWasCorrect: Bool? = nil
-    @State private var score: Int = 0
-    @State private var finished: Bool = false
 
     init(viewModel: MajlisViewModel, region: Region) {
         self.viewModel = viewModel
         self.region = region
-        self.questions = QuestionsBank.questions(for: region)
-    }
-
-    // MARK: - Helpers
-    private var currentQuestion: Question? {
-        guard questions.indices.contains(currentIndex) else { return nil }
-        return questions[currentIndex]
     }
 
     var body: some View {
@@ -47,13 +35,9 @@ struct Majlis: View {
 
             VStack(spacing: 24) {
 
-                // MARK: - Header
                 HStack {
 
-                    Toggle("", isOn: .constant(true))
-                        .labelsHidden()
-                        .toggleStyle(SwitchToggleStyle(tint: .yellow))
-                        .scaleEffect(0.9)
+                    xpBar(value: viewModel.xp)
 
                     Spacer()
 
@@ -70,25 +54,17 @@ struct Majlis: View {
 
                 Spacer(minLength: 10)
 
-                // MARK: - Text Card (Question)
-                Group {
-                    if finished {
-                        Text("خلصنا ✅\nنتيجتك: \(score) / \(questions.count)")
-                    } else {
-                        Text(currentQuestion?.text ?? "ما فيه أسئلة لهذه المنطقة")
-                    }
-                }
-                .font(.title3)
-                .multilineTextAlignment(.center)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.white.opacity(0.75))
-                .cornerRadius(16)
-                .padding(.horizontal)
+                Text(viewModel.cardText)
+                    .font(.title3)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.white.opacity(0.75))
+                    .cornerRadius(16)
+                    .padding(.horizontal)
 
                 Spacer(minLength: 20)
 
-                // MARK: - Sofa + Character
                 ZStack(alignment: .bottom) {
 
                     Image("sofa")
@@ -111,38 +87,7 @@ struct Majlis: View {
 
                 Spacer(minLength: 20)
 
-                // MARK: - Answers (3 Circles)
-                if finished {
-                    Button {
-                        restartQuiz()
-                    } label: {
-                        Text("إعادة")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(Color.brown)
-                            .clipShape(Capsule())
-                    }
-                } else {
-                    HStack(spacing: 24) {
-                        if let q = currentQuestion {
-                            ForEach(q.answers) { ans in
-                                AnswerCircle(
-                                    text: ans.text,
-                                    state: answerCircleState(for: ans)
-                                )
-                                .onTapGesture {
-                                    choose(ans)
-                                }
-                            }
-                        } else {
-                            // لو ما فيه أسئلة
-                            Text("لا توجد خيارات")
-                                .foregroundStyle(.brown)
-                        }
-                    }
-                }
+                bottomArea
 
                 Spacer(minLength: 10)
 
@@ -150,58 +95,161 @@ struct Majlis: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .onAppear {
-            finished = questions.isEmpty
+        .fullScreenCover(isPresented: $viewModel.showCoffeeGame) {
+            CoffeeGameView {
+                viewModel.coffeeGameFinishedSuccessfully()
+            }
         }
     }
 
-    // MARK: - Quiz Logic
-    private func choose(_ answer: Answer) {
-        // منع الضغط مرتين
-        guard selectedAnswerID == nil else { return }
+    private func xpBar(value: Int) -> some View {
+        let maxPoints = 10
+        let width: CGFloat = 140
+        let fill = CGFloat(min(value, maxPoints)) / CGFloat(maxPoints)
 
-        selectedAnswerID = answer.id
-        lastAnswerWasCorrect = answer.isCorrect
+        return ZStack(alignment: .leading) {
+            Capsule()
+                .fill(Color.white)
+                .frame(width: width, height: 18)
 
-        if answer.isCorrect { score += 1 }
-
-        // انتقال تلقائي بعد لحظة
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-            next()
+            Capsule()
+                .fill(Color.yellow)
+                .frame(width: max(10, width * fill), height: 12)
+                .padding(.leading, 3)
         }
     }
 
-    private func next() {
-        let nextIndex = currentIndex + 1
-        if nextIndex < questions.count {
-            currentIndex = nextIndex
-            selectedAnswerID = nil
-            lastAnswerWasCorrect = nil
-        } else {
-            finished = true
+    @ViewBuilder
+    private var bottomArea: some View {
+        switch viewModel.step {
+
+        case .coffeeHintChoices:
+            HStack(spacing: 24) {
+                OptionCircle(bgName: Assets.circleBG, iconName: Assets.incense, enabled: false) { }
+                OptionCircle(bgName: Assets.circleBG, iconName: Assets.dates,  enabled: false) { }
+                OptionCircle(bgName: Assets.circleBG, iconName: Assets.dallah, enabled: true)  {
+                    viewModel.tapDallahToOpenCoffeeGame()
+                }
+            }
+
+        case .datesQuestion:
+            HStack(spacing: 24) {
+                OptionCircle(bgName: Assets.circleBG, iconName: Assets.finjan, enabled: viewModel.selectedIconKey == nil) {
+                    viewModel.answerDates(iconKey: Assets.finjan, isCorrect: false)
+                }
+                OptionCircle(bgName: Assets.circleBG, iconName: Assets.dates, enabled: viewModel.selectedIconKey == nil) {
+                    viewModel.answerDates(iconKey: Assets.dates, isCorrect: true)
+                }
+                OptionCircle(bgName: Assets.circleBG, iconName: Assets.dallah, enabled: viewModel.selectedIconKey == nil) {
+                    viewModel.answerDates(iconKey: Assets.dallah, isCorrect: false)
+                }
+            }
+
+        case .incenseQuestion:
+            HStack(spacing: 24) {
+                OptionCircle(bgName: Assets.circleBG, iconName: Assets.incense, enabled: viewModel.selectedIconKey == nil) {
+                    viewModel.answerIncense(iconKey: Assets.incense, isCorrect: true)
+                }
+                OptionCircle(bgName: Assets.circleBG, iconName: Assets.dates, enabled: viewModel.selectedIconKey == nil) {
+                    viewModel.answerIncense(iconKey: Assets.dates, isCorrect: false)
+                }
+                OptionCircle(bgName: Assets.circleBG, iconName: Assets.finjan, enabled: viewModel.selectedIconKey == nil) {
+                    viewModel.answerIncense(iconKey: Assets.finjan, isCorrect: false)
+                }
+            }
+
+        case .staticStartPage:
+            Button {
+                viewModel.tapStart()
+            } label: {
+                Text("ابدأ")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color.brown)
+                    .clipShape(Capsule())
+            }
+
+        case .proverbQuestion:
+            if let q = viewModel.proverbQuestion {
+                HStack(spacing: 24) {
+                    ForEach(q.answers) { ans in
+                        AnswerCircle(text: ans.text, state: viewModel.circleState(for: ans))
+                            .onTapGesture { viewModel.chooseProverbAnswer(ans) }
+                    }
+                }
+            } else {
+                Text("لا توجد خيارات")
+                    .foregroundStyle(.brown)
+            }
+
+        case .proverbExplanation:
+            Button {
+                viewModel.goToFoodQuestion()
+            } label: {
+                Text("التالي")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color.brown)
+                    .clipShape(Capsule())
+            }
+
+        case .foodQuestion:
+            let q = viewModel.foodQuestion
+            HStack(spacing: 24) {
+                ForEach(q.answers) { ans in
+                    AnswerCircle(text: ans.text, state: viewModel.circleState(for: ans))
+                        .onTapGesture { viewModel.chooseFoodAnswer(ans) }
+                }
+            }
+
+        case .finished:
+            Button {
+                viewModel.restartSession()
+            } label: {
+                Text("إعادة")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color.brown)
+                    .clipShape(Capsule())
+            }
         }
-    }
-
-    private func restartQuiz() {
-        currentIndex = 0
-        score = 0
-        finished = questions.isEmpty
-        selectedAnswerID = nil
-        lastAnswerWasCorrect = nil
-    }
-
-    private func answerCircleState(for answer: Answer) -> AnswerCircleState {
-        // قبل الاختيار: عادي
-        guard let selected = selectedAnswerID else { return .idle }
-
-        // المختار فقط هو اللي يتلوّن
-        guard selected == answer.id else { return .idle }
-
-        return (answer.isCorrect) ? .correct : .wrong
     }
 }
 
-// MARK: - Answer Circle Component
+// MARK: - Option Circle
+private struct OptionCircle: View {
+
+    let bgName: String
+    let iconName: String
+    let enabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Image(bgName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 95, height: 95)
+
+                Image(iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 50, height: 50)
+            }
+            .opacity(enabled ? 1.0 : 0.6)
+        }
+        .disabled(!enabled)
+    }
+}
+
+// MARK: - Answer Circle
 enum AnswerCircleState {
     case idle
     case correct
@@ -267,8 +315,8 @@ struct TrianglePatternView: View {
 }
 
 #Preview {
-    let vm = MajlisViewModel()
+    let vm = MajlisViewModel(region: .western)
     vm.selectedCharacter = .female
-    return Majlis(viewModel: vm, region: .central)
+    return Majlis(viewModel: vm, region: .western)
 }
 

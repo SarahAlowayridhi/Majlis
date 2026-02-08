@@ -3,7 +3,7 @@
 //  Majlis
 //
 //  Created by Ruba Arif on 17/08/1447 AH.
-
+//
 
 import SwiftUI
 
@@ -11,6 +11,8 @@ struct ContentView: View {
 
     // MARK: - ViewModel
     @StateObject private var viewModel = MapViewModel()
+
+    /// هذا VM جاينا من اختيار الشخصية (يحمل selectedCharacter + name)
     @ObservedObject var majlisVM: MajlisViewModel
 
     // MARK: - UI State
@@ -109,7 +111,15 @@ struct ContentView: View {
             }
             // MARK: - Navigation
             .navigationDestination(item: $viewModel.selectedRegion) { region in
-                Majlis(viewModel: majlisVM, region: region)
+
+                // ✅ أنشئ VM جديد مرتبط بالمنطقة المختارة
+                let sessionVM = MajlisViewModel(region: region)
+
+                // ✅ انقل بيانات الشخصية/الاسم من VM القادم من اختيار الشخصية
+                sessionVM.name = majlisVM.name
+                sessionVM.selectedCharacter = majlisVM.selectedCharacter
+
+                return Majlis(viewModel: sessionVM, region: region)
             }
         }
     }
@@ -158,7 +168,8 @@ struct BottomTriangle: Shape {
 }
 
 #Preview {
-    let vm = MajlisViewModel()
+    let vm = MajlisViewModel(region: .central)
     vm.selectedCharacter = .female
     return ContentView(majlisVM: vm)
 }
+
