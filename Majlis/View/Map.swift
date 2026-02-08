@@ -3,154 +3,164 @@
 //  Majlis
 //
 //  Created by Ruba Arif on 17/08/1447 AH.
-//
+
+
 
 import SwiftUI
 
 struct ContentView: View {
 
-    // Swipe state
+    // MARK: - ViewModel
+    // هذا هو الـ ViewModel المسؤول عن اختيار المنطقة والتنقّل
+    @StateObject private var viewModel = MapViewModel()
+    @ObservedObject var majlisVM: MajlisViewModel
+    // MARK: - UI State
+    // هذا متغير خاص بالـ UI فقط (السحب بين الخرائط)
     @State private var selectedPage = 0
 
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
 
-            // Background
-            Color(red: 0.99, green: 0.93, blue: 0.78)
-                .ignoresSafeArea()
+                // Background
+                Color(red: 0.99, green: 0.93, blue: 0.78)
+                    .ignoresSafeArea()
 
-            VStack {
+                VStack {
 
-                // Top Controls
-                HStack {
+                    // MARK: - Top Controls
+                    HStack {
 
-                    // Toggle (Fake / UI only)
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.brown, lineWidth: 2)
-                            .frame(width: 80, height: 34)
+                        // Toggle (UI فقط – بدون منطق)
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.brown, lineWidth: 2)
+                                .frame(width: 80, height: 34)
 
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.yellow)
-                            .frame(width: 36, height: 26)
-                            .padding(.leading, 4)
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.yellow)
+                                .frame(width: 36, height: 26)
+                                .padding(.leading, 4)
+                        }
+
+                        Spacer()
+
+                        // Icons
+                        HStack(spacing: 12) {
+                            CircleButton(system: "gearshape.fill")
+                            CircleButton(system: "storefront.circle.fill")
+                        }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 10)
+
+                    Spacer(minLength: 50)
+
+                    // MARK: - Map Swipe (Regions)
+                    TabView(selection: $selectedPage) {
+
+                        // Central
+                        regionView(
+                            title: "المنطقة الوسطى",
+                            image: "MapCentral"
+                        )
+                        .tag(0)
+                        .onTapGesture {
+                            viewModel.select(.central)
+                        }
+
+                        // East
+                        regionView(
+                            title: "المنطقة الشرقية",
+                            image: "MapEast"
+                        )
+                        .tag(1)
+                        .onTapGesture {
+                            viewModel.select(.eastern)
+                        }
+
+                        // South
+                        regionView(
+                            title: "المنطقة الجنوبية",
+                            image: "MapSouth"
+                        )
+                        .tag(2)
+                        .onTapGesture {
+                            viewModel.select(.southern)
+                        }
+
+                        // West
+                        regionView(
+                            title: "المنطقة الغربية",
+                            image: "MapWest"
+                        )
+                        .tag(3)
+                        .onTapGesture {
+                            viewModel.select(.western)
+                        }
+
+                        // North
+                        regionView(
+                            title: "المنطقة الشمالية",
+                            image: "MapNorth"
+                        )
+                        .tag(4)
+                        .onTapGesture {
+                            viewModel.select(.northern)
+                        }
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .frame(height: 380)
+
+                    // MARK: - Swipe Indicator Dots
+                    HStack(spacing: 8) {
+                        ForEach(0..<5, id: \.self) { index in
+                            Circle()
+                                .fill(
+                                    selectedPage == index
+                                    ? Color.brown
+                                    : Color.brown.opacity(0.3)
+                                )
+                                .frame(width: 8, height: 8)
+                        }
+                    }
+                    .padding(.top, 8)
 
                     Spacer()
 
-                    // Icons
-                    HStack(spacing: 12) {
-                        CircleButton(system: "gearshape.fill")
-                        CircleButton(system: "storefront.circle.fill")
+                    // MARK: - Bottom Decoration
+                    HStack(spacing: 6) {
+                        ForEach(0..<15, id: \.self) { _ in
+                            BottomTriangle()
+                                .fill(Color.brown)
+                                .frame(width: 12, height: 8)
+                        }
                     }
+                    .padding(.bottom, 12)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
-
-                Spacer(minLength: 50)
-
-                // Title + Map (Swipe)
-                TabView(selection: $selectedPage) {
-
-                    // Central
-                    VStack(spacing: 30) {
-                        Text("المنطقة الوسطى")
-                            .font(.title3)
-                            .foregroundColor(.black)
-
-                        Image("MapCentral")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 300)
-                    }
-                    .tag(0)
-
-                    // East
-                    VStack(spacing: 30) {
-                        Text("المنطقة الشرقية")
-                            .font(.title3)
-                            .foregroundColor(.black)
-
-                        Image("MapEast")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 300)
-                    }
-                    .tag(1)
-
-                    // South
-                    VStack(spacing: 30) {
-                        Text("المنطقة الجنوبية")
-                            .font(.title3)
-                            .foregroundColor(.black)
-
-                        Image("MapSouth")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 300)
-                    }
-                    .tag(2)
-
-                    // West
-                    VStack(spacing: 30) {
-                        Text("المنطقة الغربية")
-                            .font(.title3)
-                            .foregroundColor(.black)
-
-                        Image("MapWest")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 300)
-                    }
-                    .tag(3)
-
-                    // North
-                    VStack(spacing: 30) {
-                        Text("المنطقة الشمالية")
-                            .font(.title3)
-                            .foregroundColor(.black)
-
-                        Image("MapNorth")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 300)
-                    }
-                    .tag(4)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 380)
-
-                // Swipe Indicator Dots ✅
-                HStack(spacing: 8) {
-                    ForEach(0..<5, id: \.self) { index in
-                        Circle()
-                            .fill(
-                                selectedPage == index
-                                ? Color.brown
-                                : Color.brown.opacity(0.3)
-                            )
-                            .frame(width: 8, height: 8)
-                    }
-                }
-                .padding(.top, 8)
-
-                Spacer()
-
-                // Bottom Decoration
-                HStack(spacing: 6) {
-                    ForEach(0..<15, id: \.self) { _ in
-                        BottomTriangle()
-                            .fill(Color.brown)
-                            .frame(width: 12, height: 8)
-                    }
-                }
-                .padding(.bottom, 12)
+            }
+            // MARK: - Navigation
+            // أول ما تنختار منطقة من الـ ViewModel ننتقل لشاشة Majlis
+            .navigationDestination(item: $viewModel.selectedRegion) { region in
+                Majlis(viewModel: majlisVM, region: region)
             }
         }
     }
-}
 
-// MARK: - SF Symbol Buttons
+    // هذا مجرد View لتقليل التكرار
+    private func regionView(title: String, image: String) -> some View {
+        VStack(spacing: 30) {
+            Text(title)
+                .font(.title3)
+                .foregroundColor(.black)
+
+            Image(image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 300)
+        }
+    }
+}
 struct CircleButton: View {
     var system: String
 
@@ -164,8 +174,6 @@ struct CircleButton: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
-
-// MARK: - Triangle Shape
 struct BottomTriangle: Shape {
 
     func path(in rect: CGRect) -> Path {
@@ -177,7 +185,10 @@ struct BottomTriangle: Shape {
         return path
     }
 }
-
 #Preview {
-    ContentView()
+    let vm = MajlisViewModel()
+    vm.selectedCharacter = .female  // اختياري عشان تشوفين الشخصية
+    return ContentView(majlisVM: vm)
 }
+
+

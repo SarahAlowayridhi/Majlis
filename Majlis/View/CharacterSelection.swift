@@ -48,8 +48,8 @@ struct CharacterSelection: View {
                     .padding(.bottom, 300)
                 }
             }
-            .navigationDestination(isPresented: $vm.goMajlis) { // ✅ يشتغل
-                Majlis(viewModel: vm) // ✅ نفس الـ VM
+            .navigationDestination(isPresented: $vm.goMajlis) {
+                ContentView(majlisVM: vm)
             }
         }
     }
