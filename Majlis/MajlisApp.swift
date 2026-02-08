@@ -9,9 +9,31 @@ import SwiftUI
 
 @main
 struct MajlisApp: App {
+    @State private var showSplash: Bool = true
+
     var body: some Scene {
         WindowGroup {
-            CharacterSelection()
+            ZStack {
+                // Main app flow (what you previously launched)
+                NavigationStack {
+                    CharacterSelection(viewModel: MajlisViewModel())
+                }
+                .opacity(showSplash ? 0 : 1)
+
+                // Splash on top initially
+                if showSplash {
+                    StartScreen()
+                        .transition(.opacity)
+                }
+            }
+            .onAppear {
+                // Keep splash for ~2 seconds, then fade to main
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        showSplash = false
+                    }
+                }
+            }
         }
     }
 }

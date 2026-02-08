@@ -8,9 +8,19 @@
 import SwiftUI
 
 struct CharacterSelection: View {
-    @State private var name: String = ""
-    @State private var selectedCharacter: String? = nil
+    @ObservedObject var viewModel: MajlisViewModel
+
+    @State private var selectedCharacter: CharacterType? = nil
     @Namespace private var selectionNamespace
+    @State private var goNext: Bool = false
+
+    private var trimmedName: String {
+        viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canProceed: Bool {
+        !trimmedName.isEmpty && selectedCharacter != nil
+    }
 
     var body: some View {
         ZStack {
@@ -25,27 +35,41 @@ struct CharacterSelection: View {
                         .fill(Color.white.opacity(0.9))
                         .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
 
-                    TextField("اكتب اسمك هنا", text: $name)
-                        .multilineTextAlignment(.center)
-                        .font(.system(size: 18, weight: .regular))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 20)
+                    // TextField with custom darker placeholder overlay
+                    ZStack {
+                        TextField("", text: $viewModel.name)
+                            .multilineTextAlignment(.center)
+                            .font(.system(size: 18, weight: .regular))
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 20)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
+
+                        if viewModel.name.isEmpty {
+                            Text("اكتب اسمك هنا")
+                                .font(.system(size: 18, weight: .regular))
+                                .foregroundColor(Color.black.opacity(0.33)) // darker placeholder
+                                .padding(.horizontal, 20)
+                                .allowsHitTesting(false) // taps go to the TextField
+                        }
+                    }
                 }
                 .frame(height: 50)
                 .padding(.horizontal, 40)
                 .padding(.top, 277)
 
-                // Characters row
                 HStack(spacing: 22) {
-                    selectableCharacter(imageName: "Man")
-                    selectableCharacter(imageName: "Woman")
+                    selectableCharacter(imageName: "Man", type: .male)
+                    selectableCharacter(imageName: "Woman", type: .female)
                 }
                 .padding(.top, 44)
                 .animation(.spring(response: 0.35, dampingFraction: 0.8, blendDuration: 0.2), value: selectedCharacter)
 
-                // CTA button
+                // Standalone button that sets state
                 Button(action: {
-                    // TODO: Handle tap (e.g., navigate with selectedCharacter and name)
+                    guard canProceed, let chosen = selectedCharacter else { return }
+                    viewModel.selectedCharacter = chosen
+                    goNext = true
                 }) {
                     Text("حياك الله")
                         .font(.system(size: 18, weight: .semibold))
@@ -59,19 +83,49 @@ struct CharacterSelection: View {
                         )
                 }
                 .padding(.top, 44)
-                .opacity(selectedCharacter == nil ? 0.6 : 1.0)
-                .disabled(selectedCharacter == nil)
+                .opacity(canProceed ? 1.0 : 0.6)
+                .disabled(!canProceed)
+                .buttonStyle(.plain)
+
+                if trimmedName.isEmpty {
+                    Text("اكتب اسمك لاهنت")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Color(red: 0.62, green: 0.20, blue: 0.16))
+                        .padding(.top, 10)
+                }
 
                 Spacer()
             }
             .padding(.bottom, 48)
         }
+        // Hidden NavigationLink driven by goNext
+        .background(
+            NavigationLink(isActive: $goNext) {
+                Group {
+                    if selectedCharacter == .male {
+                        ManStory(name: trimmedName, viewModel: viewModel)
+                            .navigationBarBackButtonHidden(true)
+                    } else if selectedCharacter == .female {
+                        WomanStory(name: trimmedName, viewModel: viewModel)
+                            .navigationBarBackButtonHidden(true)
+                    } else {
+                        EmptyView()
+                    }
+                }
+            } label: { EmptyView() }
+                .hidden()
+        )
+        .onAppear {
+            if let existing = viewModel.selectedCharacter {
+                selectedCharacter = existing
+            }
+        }
     }
 
     // MARK: - Selectable Character
     @ViewBuilder
-    private func selectableCharacter(imageName: String) -> some View {
-        let isSelected = selectedCharacter == imageName
+    private func selectableCharacter(imageName: String, type: CharacterType) -> some View {
+        let isSelected = selectedCharacter == type
         let someoneSelected = selectedCharacter != nil
 
         Image(imageName)
@@ -84,20 +138,17 @@ struct CharacterSelection: View {
             .contentShape(Rectangle())
             .onTapGesture {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.8, blendDuration: 0.2)) {
-                    if selectedCharacter == imageName {
-                        // Tapping the same one toggles off (optional behavior)
+                    if selectedCharacter == type {
                         selectedCharacter = nil
                     } else {
-                        selectedCharacter = imageName
+                        selectedCharacter = type
                     }
                 }
             }
-            .scaleEffect(isSelected ? 1.0 : 1.0)
             .accessibilityAddTraits(isSelected ? [.isSelected] : [])
-            .accessibilityLabel(Text(imageName == "Man" ? "رجل" : "امرأة"))
+            .accessibilityLabel(Text(type == .male ? "رجل" : "امرأة"))
     }
 
-    // If you want a non-tappable static option (not used now)
     @ViewBuilder
     private func characterOption(imageName: String) -> some View {
         Image(imageName)
@@ -109,5 +160,8 @@ struct CharacterSelection: View {
 }
 
 #Preview {
-    CharacterSelection()
+    // Important: wrap in NavigationStack for the preview
+    NavigationStack {
+        CharacterSelection(viewModel: MajlisViewModel())
+    }
 }

@@ -1,5 +1,5 @@
 //
-//  ManStory.swift
+//  WomanStory.swift
 //  Majlis
 //
 //  Created by Teif May on 20/08/1447 AH.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ManStory: View {
+struct WomanStory: View {
     var name: String
     @ObservedObject var viewModel: MajlisViewModel
     @State private var goMap: Bool = false
@@ -28,14 +28,14 @@ struct ManStory: View {
 
     private var pages: [Page] {
         [
-            Page(imageName: "MaleStory1",
-                 caption: "\(name) تعلّم السنع من ابوه",
+            Page(imageName: "WomanStory1",
+                 caption: "\(name) تعلّمت السنع من امها",
                  showsPrimaryCTA: false),
-            Page(imageName: "MaleStory2",
+            Page(imageName: "WomanStory2",
                  caption: "المجلس أمانة عندك يا \(name)",
                  showsPrimaryCTA: false),
-            Page(imageName: "MaleStory3",
-                 caption: "هل أنت جاهز للتحدي؟",
+            Page(imageName: "WomanStory3",
+                 caption: "هل انتي جاهزه للتحدي؟",
                  showsPrimaryCTA: true)
         ]
     }
@@ -90,7 +90,6 @@ struct ManStory: View {
         )
     }
 
-    // MARK: - Top Bar (Skip)
     private var topBar: some View {
         HStack {
             Button(action: {
@@ -115,7 +114,6 @@ struct ManStory: View {
         }
     }
 
-    // MARK: - Image
     @ViewBuilder
     private func storyImage(_ name: String) -> some View {
         GeometryReader { geo in
@@ -130,7 +128,6 @@ struct ManStory: View {
         }
     }
 
-    // MARK: - Caption
     @ViewBuilder
     private var captionArea: some View {
         if !pages[index].caption.isEmpty {
@@ -154,7 +151,6 @@ struct ManStory: View {
         }
     }
 
-    // MARK: - Progress Dots
     private var progressDots: some View {
         HStack(spacing: 8) {
             ForEach(pages.indices, id: \.self) { i in
@@ -169,7 +165,6 @@ struct ManStory: View {
         .accessibilityValue("\(index + 1) من \(pages.count)")
     }
 
-    // MARK: - Controls Bar
     private var controlsBar: some View {
         HStack(spacing: 12) {
             Button(action: goBack) {
@@ -274,7 +269,7 @@ struct ManStory: View {
 
 #Preview {
     NavigationStack {
-        ManStory(name: "سعود", viewModel: MajlisViewModel())
+        WomanStory(name: "نورة", viewModel: MajlisViewModel())
             .navigationBarBackButtonHidden(true)
     }
 }

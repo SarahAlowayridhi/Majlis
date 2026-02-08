@@ -58,7 +58,7 @@ struct Majlis: View {
                     Spacer()
 
                     Button { dismiss() } label: {
-                        Image(systemName: "chevron.left")
+                        Image(systemName: "chevron.right")
                             .foregroundColor(.white)
                             .frame(width: 44, height: 44)
                             .background(Color.brown)
