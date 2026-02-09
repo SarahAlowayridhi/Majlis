@@ -96,7 +96,10 @@ struct Majlis: View {
         }
         .navigationBarBackButtonHidden(true)
         .fullScreenCover(isPresented: $viewModel.showCoffeeGame) {
-            CoffeeGameView {
+
+            CoffeeGameView(
+                region: region
+            ) {
                 viewModel.coffeeGameFinishedSuccessfully()
             }
         }

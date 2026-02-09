@@ -4,34 +4,42 @@
 //
 //  Created by maha althwab on 13/08/1447 AH.
 //
-
 import SwiftUI
 
 struct CoffeeGameView: View {
 
-    // ✅ عشان نقدر نقفل الصفحة ونرجع للمجلس
-    @Environment(\.dismiss) private var dismiss
-
-    // ✅ ينادينه من Majlis لما تخلص اللعبة
+    // MARK: - Inputs
+    let region: Region
     let onFinished: (() -> Void)?
 
-    // MARK: - States
+    @Environment(\.dismiss) private var dismiss
 
+    // MARK: - Pour States
     @State private var fillAmount: CGFloat = 0.0
     @State private var fillTimer: Timer?
     @State private var dallahRotation: Double = 0
-
     @State private var result: ResultState = .idle
+    @State private var isPouring: Bool = false
+
+    // MARK: - Ingredient States
+    @State private var circleStates: [String: CoffeeCircleState] = [:]
 
     let targetWidth: CGFloat = 0.33
-    let coffeeOptions = ["choose", "choose", "choose"]
 
-    // ✅ init عشان نمرر onFinished من برا
-    init(onFinished: (() -> Void)? = nil) {
+    // MARK: - Init
+    init(region: Region, onFinished: (() -> Void)? = nil) {
+        self.region = region
         self.onFinished = onFinished
     }
 
+    // MARK: - Data
+    var coffeeOptions: [CoffeeOption] {
+        CoffeeData.options(for: region)
+    }
+
+    // MARK: - Body
     var body: some View {
+
         ZStack {
 
             Color(red: 0.98, green: 0.96, blue: 0.92)
@@ -39,28 +47,35 @@ struct CoffeeGameView: View {
 
             VStack {
 
-                // الخيارات
-                HStack(spacing: 12) {
-                    ForEach(coffeeOptions.indices, id: \.self) { index in
-                        Button {
-                            print("Option \(index)")
-                        } label: {
-                            Image(coffeeOptions[index])
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 100, height: 100)
+                // MARK: - Ingredient Choices
+                HStack(spacing: 24) {
+
+                    ForEach(coffeeOptions) { option in
+
+                        CoffeeAnswerCircle(
+                            text: option.text,
+                            state: circleState(for: option)
+                        )
+                        .onTapGesture {
+                            handleIngredientTap(option)
                         }
                     }
                 }
-                .padding(.top, 160)
+                .padding(.top, 140)
+                .opacity(isPouring ? 0 : 1)   // تختفي بس مكانها ثابت
+                .allowsHitTesting(!isPouring) // ما تنضغط وقت الصب
+
+                // MARK: - Hint
+                Text(hintText)
+                    .font(.headline)
+                    .foregroundColor(hintColor)
+                    .padding(.top, 8)
 
                 Spacer()
 
-                // MARK: - الفنجال + الدلة
-
+                // MARK: - Cup + Dallah
                 HStack(alignment: .bottom, spacing: -10) {
 
-                    // ⭐ صورة الفنجال تتغير
                     Image(currentCupImage)
                         .resizable()
                         .scaledToFit()
@@ -91,8 +106,7 @@ struct CoffeeGameView: View {
 
                 Spacer()
 
-                // MARK: - الشريط
-
+                // MARK: - Progress Bar
                 ZStack(alignment: .leading) {
 
                     Capsule()
@@ -116,61 +130,70 @@ struct CoffeeGameView: View {
                 .padding(.bottom, 50)
             }
         }
-        // ✅ مهم: لو طلعت من الصفحة، اقفل التايمر عشان ما يكمل بالخلفية
-        .onDisappear {
-            fillTimer?.invalidate()
-            fillTimer = nil
+        .animation(.easeInOut, value: isPouring)
+    }
+}
+
+// MARK: - Ingredient Logic
+
+extension CoffeeGameView {
+
+    func handleIngredientTap(_ option: CoffeeOption) {
+
+        if option.isCorrect {
+
+            circleStates[option.id] = .correct
+
+        } else {
+
+            circleStates[option.id] = .wrong
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                circleStates[option.id] = .idle
+            }
         }
     }
 
-    // MARK: - الحالات
+    func circleState(for option: CoffeeOption) -> CoffeeCircleState {
+        circleStates[option.id] ?? .idle
+    }
+}
+// MARK: - Hint
 
-    enum ResultState {
-        case idle
-        case success
-        case fail
+extension CoffeeGameView {
+
+    var hintText: String {
+        "اختاري المكونات أو صبّي القهوة ☕️"
     }
 
-    // MARK: - صورة الفنجال
+    var hintColor: Color {
+        .brown
+    }
+}
+
+// MARK: - Pour Logic
+
+extension CoffeeGameView {
+
+    enum ResultState { case idle, success, fail }
 
     var currentCupImage: String {
-
-        if result == .fail {
-            return "failcup"   // ❌ صورة الفشل
-        } else {
-            return "redcup"   // ☕️ الطبيعي
-        }
+        result == .fail ? "failcup" : "redcup"
     }
 
-    // MARK: - الدلة
-
-    func tiltDallah() {
-        dallahRotation = -40
-    }
-
-    func resetDallah() {
-        dallahRotation = 0
-    }
-
-    // MARK: - التعبئة
+    func tiltDallah() { dallahRotation = -40 }
+    func resetDallah() { dallahRotation = 0 }
 
     func startFilling() {
-        result = .idle   // يرجع الفنجال طبيعي
+
+        isPouring = true
+        result = .idle
 
         guard fillTimer == nil else { return }
 
-        fillTimer = Timer.scheduledTimer(
-            withTimeInterval: 0.05,
-            repeats: true
-        ) { _ in
-
+        fillTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
             withAnimation(.linear(duration: 0.05)) {
-
-                if fillAmount < 1.0 {
-                    fillAmount += 0.01
-                } else {
-                    fillAmount = 0.0
-                }
+                fillAmount = fillAmount < 1.0 ? fillAmount + 0.01 : 0.0
             }
         }
     }
@@ -178,57 +201,90 @@ struct CoffeeGameView: View {
     func stopFilling() {
         fillTimer?.invalidate()
         fillTimer = nil
-
         checkResult()
     }
-
-    // MARK: - التحقق
 
     func checkResult() {
 
         let tolerance: CGFloat = 0.02
-        let targetEnd = targetWidth
 
-        if abs(fillAmount - targetEnd) <= tolerance {
+        if abs(fillAmount - targetWidth) <= tolerance {
+
             result = .success
 
-            // ✅ إذا نجح: انتظري شوي ثم ارجعي للمجلس
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 onFinished?()
                 dismiss()
             }
 
-        } else if fillAmount > targetEnd {
-            result = .fail   // ⭐ هنا تتغير الصورة
+        } else if fillAmount > targetWidth {
+
+            result = .fail
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+
+                isPouring = false
+                fillAmount = 0
+                result = .idle
+            }
 
         } else {
             result = .idle
         }
     }
 
-    // MARK: - لون الشريط
-
     var progressColor: Color {
-
         switch result {
-
-        case .idle:
-            return .yellow
-
-        case .success:
-            return .green
-
-        case .fail:
-            return .red
+        case .idle: return .yellow
+        case .success: return .green
+        case .fail: return .red
         }
     }
 }
 
-// Preview
+// MARK: - Circle Component
 
-struct CoffeeGameView_Previews: PreviewProvider {
-    static var previews: some View {
-        CoffeeGameView()
+enum CoffeeCircleState {
+    case idle
+    case correct
+    case wrong
+}
+
+struct CoffeeAnswerCircle: View {
+
+    let text: String
+    let state: CoffeeCircleState
+
+    private var ringColor: Color {
+        switch state {
+        case .idle: return .brown.opacity(0.8)
+        case .correct: return .green
+        case .wrong: return .red
+        }
     }
+
+    var body: some View {
+
+        ZStack {
+
+            Circle()
+                .stroke(ringColor, lineWidth: 6)
+                .frame(width: 110, height: 110)
+
+            Circle()
+                .fill(Color(red: 0.86, green: 0.75, blue: 0.63))
+                .frame(width: 90, height: 90)
+
+            Text(text)
+                .font(.headline)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.black)
+        }
+    }
+}
+
+// MARK: - Preview
+#Preview {
+    CoffeeGameView(region: .central)
 }
 
