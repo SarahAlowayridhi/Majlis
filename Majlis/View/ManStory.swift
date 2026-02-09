@@ -274,7 +274,7 @@ struct ManStory: View {
 
 #Preview {
     NavigationStack {
-        ManStory(name: "سعود", viewModel: MajlisViewModel())
+        ManStory(name: "محمد", viewModel: MajlisViewModel())
             .navigationBarBackButtonHidden(true)
     }
 }
