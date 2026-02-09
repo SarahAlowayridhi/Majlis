@@ -163,7 +163,7 @@ extension CoffeeGameView {
 extension CoffeeGameView {
 
     var hintText: String {
-        "اختاري المكونات أو صبّي القهوة ☕️"
+        "اختار المكونات و صبّ القهوة ☕️"
     }
 
     var hintColor: Color {
