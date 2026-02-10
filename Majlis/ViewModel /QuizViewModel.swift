@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 
-
 @MainActor
 final class QuizViewModel: ObservableObject {
 
@@ -24,12 +23,14 @@ final class QuizViewModel: ObservableObject {
     @Published private(set) var lastAnswerWasCorrect: Bool? = nil
     @Published private(set) var score: Int = 0
     @Published private(set) var finished: Bool = false
+    @Published var showResultSheet: Bool = false
 
     // MARK: - Init
     init(region: Region) {
         self.region = region
         self.questions = QuestionsBank.questions(for: region)
         self.finished = questions.isEmpty
+        self.showResultSheet = false
     }
 
     // MARK: - Computed
@@ -40,6 +41,11 @@ final class QuizViewModel: ObservableObject {
 
     /// عدد الدوائر تحت (حسب عدد الأسئلة)
     var totalQuestions: Int { questions.count }
+
+    /// ✅ NEW: نص النتيجة بدل Total XP
+    var resultMessage: String {
+        "جاوبت على \(score) من أصل \(totalQuestions) هل تريد إعادة المحاولة؟"
+    }
 
     // MARK: - Actions
     func choose(answer: Answer) {
@@ -64,6 +70,8 @@ final class QuizViewModel: ObservableObject {
             lastAnswerWasCorrect = nil
         } else {
             finished = true
+            // ✅ NEW: show result UI
+            showResultSheet = true
         }
     }
 
@@ -73,6 +81,8 @@ final class QuizViewModel: ObservableObject {
         finished = questions.isEmpty
         selectedAnswerID = nil
         lastAnswerWasCorrect = nil
+        // ✅ NEW
+        showResultSheet = false
     }
 
     // MARK: - UI Helpers (للدواير)
@@ -94,3 +104,4 @@ enum CircleState {
     case current
     case done
 }
+

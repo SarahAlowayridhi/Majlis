@@ -41,6 +41,14 @@ final class MajlisViewModel: ObservableObject {
     @Published var selectedAnswerID: UUID? = nil
     @Published var selectedIconKey: String? = nil
 
+    // ✅ NEW: Result counting (بدل XP في شاشة النهاية)
+    @Published private(set) var correctCount: Int = 0
+    @Published private(set) var totalCount: Int = 0
+
+    var didAnswerAllCorrect: Bool {
+        totalCount > 0 && correctCount == totalCount
+    }
+
     // MARK: - Data Sources
     private let proverbQuestionInternal: Question
 
@@ -86,7 +94,8 @@ final class MajlisViewModel: ObservableObject {
         case .foodQuestion:
             return foodQuestionInternal.text
         case .finished:
-            return "خلصنا ✅\nXP: \(xp)"
+            // ✅ ما عاد نعرض "خلصنا / XP" هنا
+            return ""
         }
     }
 
@@ -105,6 +114,11 @@ final class MajlisViewModel: ObservableObject {
         selectedAnswerID = nil
         selectedIconKey = nil
         showCoffeeGame = false
+
+        // ✅ reset result counters
+        correctCount = 0
+        totalCount = 0
+
         step = .coffeeHintChoices
     }
 
@@ -121,7 +135,13 @@ final class MajlisViewModel: ObservableObject {
     func answerDates(iconKey: String, isCorrect: Bool) {
         guard selectedIconKey == nil else { return }
         selectedIconKey = iconKey
+
+        // XP (لو تبينه يبقى للتقدم)
         if isCorrect { xp += 1 }
+
+        // ✅ counting
+        totalCount += 1
+        if isCorrect { correctCount += 1 }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             self.selectedIconKey = nil
@@ -132,7 +152,12 @@ final class MajlisViewModel: ObservableObject {
     func answerIncense(iconKey: String, isCorrect: Bool) {
         guard selectedIconKey == nil else { return }
         selectedIconKey = iconKey
+
         if isCorrect { xp += 1 }
+
+        // ✅ counting
+        totalCount += 1
+        if isCorrect { correctCount += 1 }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             self.selectedIconKey = nil
@@ -148,7 +173,12 @@ final class MajlisViewModel: ObservableObject {
     func chooseProverbAnswer(_ answer: Answer) {
         guard selectedAnswerID == nil else { return }
         selectedAnswerID = answer.id
+
         if answer.isCorrect { xp += 1 }
+
+        // ✅ counting
+        totalCount += 1
+        if answer.isCorrect { correctCount += 1 }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             self.selectedAnswerID = nil
@@ -164,7 +194,12 @@ final class MajlisViewModel: ObservableObject {
     func chooseFoodAnswer(_ answer: Answer) {
         guard selectedAnswerID == nil else { return }
         selectedAnswerID = answer.id
+
         if answer.isCorrect { xp += 1 }
+
+        // ✅ counting
+        totalCount += 1
+        if answer.isCorrect { correctCount += 1 }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             self.selectedAnswerID = nil
@@ -173,9 +208,17 @@ final class MajlisViewModel: ObservableObject {
     }
 
     func circleState(for answer: Answer) -> AnswerCircleState {
+        // قبل الاختيار: كلها idle
         guard let selected = selectedAnswerID else { return .idle }
-        guard selected == answer.id else { return .idle }
-        return answer.isCorrect ? .correct : .wrong
+
+        // بعد الاختيار: نبين الصحيح دائمًا أخضر
+        if answer.isCorrect { return .correct }
+
+        // إذا هذي هي اللي ضغطها وكانت غلط: أحمر
+        if answer.id == selected { return .wrong }
+
+        // باقي الخيارات
+        return .idle
     }
 }
 
