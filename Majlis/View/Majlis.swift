@@ -45,7 +45,6 @@ struct Majlis: View {
         ZStack(alignment: .top) {
 
             // ✅ Background from Assets (supports Dark Mode)
-            // (إذا ما عندك background كـ Color Asset، رجّعيها للـ RGB)
             Color("background")
                 .ignoresSafeArea()
 
@@ -62,7 +61,6 @@ struct Majlis: View {
                 .rotationEffect(.degrees(180))
                 .frame(height: triangleHeight)
                 .offset(y: 39)
-
         }
 
         // ✅ Result popup overlay
@@ -75,13 +73,12 @@ struct Majlis: View {
     private var contentLayer: some View {
         ZStack {
 
-            // ✅ Sofa & character ثابتين بمكانهم (لا يتأثرون بأي تغيير بالواجهة)
+            // ✅ Sofa & character ثابتين بمكانهم
             GeometryReader { geo in
                 sofaLayer
                     .frame(maxWidth: geo.size.width)
                     .position(
                         x: geo.size.width / 2,
-                        // عدلي النسبة حسب المكان اللي تبينه
                         y: geo.size.height * 0.74
                     )
             }
@@ -101,14 +98,14 @@ struct Majlis: View {
             }
             .padding(.horizontal)
             .padding(.top)
-            .padding(.bottom, triangleHeight + 6) // keep UI above triangles
+            .padding(.bottom, triangleHeight + 6)
         }
     }
 
     // MARK: - Header
     private var header: some View {
         HStack {
-            xpBar(value: viewModel.xp)
+            progressBar(current: viewModel.progressCurrent, total: viewModel.progressTotal)
             Spacer()
 
             Button { dismiss() } label: {
@@ -121,13 +118,13 @@ struct Majlis: View {
         }
     }
 
-    // MARK: - Card Text Section (Always white bg + black text)
+    // MARK: - Card Text Section
     private var cardTextSection: some View {
         Group {
             if viewModel.step != .finished {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.white)                 // ✅ أبيض دائمًا
+                        .fill(Color.white)
                         .shadow(color: .black.opacity(0.08), radius: 6, y: 3)
                         .frame(height: 120)
 
@@ -136,7 +133,7 @@ struct Majlis: View {
                         .multilineTextAlignment(.center)
                         .lineLimit(3)
                         .minimumScaleFactor(0.85)
-                        .foregroundColor(.black)           // ✅ أسود دائمًا
+                        .foregroundColor(.black)
                         .padding(.horizontal, 16)
                 }
                 .frame(maxWidth: .infinity)
@@ -146,8 +143,8 @@ struct Majlis: View {
             }
         }
     }
-    
-    // MARK: - Sofa Layer (Fixed)
+
+    // MARK: - Sofa Layer
     private var sofaLayer: some View {
         ZStack(alignment: .center) {
             Image(Assets.sofa)
@@ -174,36 +171,68 @@ struct Majlis: View {
             let perfect = viewModel.didAnswerAllCorrect
 
             ResultPopup(
-                title: perfect ? "مبروك 🎉" : "خلصت الجولة!",
+                title: perfect ? "تمّت علومك، ما بقي عليك شي" : "العلوم ما تجي بيوم وليلة!",
                 message: perfect
-                    ? "جاوبت كل الأسئلة صح 👏"
+                    ? "أبدعت، وكأنك من الأولين"
                     : "جاوبت على \(viewModel.correctCount) من أصل \(viewModel.totalCount)",
                 primaryTitle: perfect ? "الانتقال للخريطة" : "إعادة المحاولة",
                 onPrimary: {
-                    perfect ? dismiss() : viewModel.restartSession()
+                    if perfect {
+                        dismiss()                 // ✅ يرجع للخريطة
+                    } else {
+                        viewModel.restartSession()
+                    }
                 },
-                secondaryTitle: "إغلاق",
-                onSecondary: { dismiss() }
+                secondaryTitle: nil,             // ✅ شلنا زر الإغلاق
+                onSecondary: nil
             )
         }
     }
 
-    // MARK: - XP Bar
-    private func xpBar(value: Int) -> some View {
-        let maxPoints = 10
-        let width: CGFloat = 140
-        let fill = CGFloat(min(value, maxPoints)) / CGFloat(maxPoints)
+    // MARK: - Progress Bar
+    private func progressBar(current: Int, total: Int) -> some View {
+        let width: CGFloat = 130
+        let height: CGFloat = 18
+
+        let safeTotal = max(total, 1)
+        let progress = CGFloat(min(max(current, 0), safeTotal)) / CGFloat(safeTotal)
+
+        let dotSize = height
+        let fillWidth = max(dotSize, width * progress)
 
         return ZStack(alignment: .leading) {
+
             Capsule()
                 .fill(Color.white)
-                .frame(width: width, height: 18)
+                .frame(width: width, height: height)
 
             Capsule()
                 .fill(Color.yellow)
-                .frame(width: max(10, width * fill), height: 12)
-                .padding(.leading, 3)
+                .frame(width: fillWidth, height: height)
+                .animation(.easeInOut(duration: 0.25), value: current)
+
+            ZStack {
+                Circle()
+                    .fill(Color.yellow)
+                    .frame(width: dotSize, height: dotSize)
+
+                if current > 0 {
+                    Text(arabicNumber(current))
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.black)
+                }
+            }
+            .frame(width: dotSize, height: dotSize)
         }
+    }
+
+    // تحويل 1,2,3 إلى ١،٢،٣
+    private func arabicNumber(_ n: Int) -> String {
+        let map: [Character: Character] = [
+            "0":"٠","1":"١","2":"٢","3":"٣","4":"٤",
+            "5":"٥","6":"٦","7":"٧","8":"٨","9":"٩"
+        ]
+        return String(n).map { map[$0] ?? $0 }.reduce("") { $0 + String($1) }
     }
 
     // MARK: - Bottom Area
@@ -275,7 +304,6 @@ struct Majlis: View {
             Button("التالي") {
                 viewModel.goToFoodQuestion()
             }
-            
             .font(.title2)
             .foregroundColor(.white)
             .padding(.horizontal, 24)
@@ -306,8 +334,10 @@ private struct ResultPopup: View {
     let message: String
     let primaryTitle: String
     let onPrimary: () -> Void
-    let secondaryTitle: String
-    let onSecondary: () -> Void
+
+    // ✅ اختياري (إذا nil ما يطلع زر)
+    let secondaryTitle: String?
+    let onSecondary: (() -> Void)?
 
     var body: some View {
         ZStack {
@@ -318,12 +348,12 @@ private struct ResultPopup: View {
 
                 Text(title)
                     .font(.headline)
-                    .foregroundStyle(Color.primary) // ✅ يدعم الدارك
+                    .foregroundStyle(Color.primary)
 
                 Text(message)
                     .font(.subheadline)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(Color.primary.opacity(0.9)) // ✅ يدعم الدارك
+                    .foregroundStyle(Color.primary)
 
                 Button(primaryTitle) { onPrimary() }
                     .font(.headline)
@@ -333,14 +363,17 @@ private struct ResultPopup: View {
                     .background(Color.brown)
                     .clipShape(Capsule())
 
-                Button(secondaryTitle) { onSecondary() }
-                    .font(.subheadline)
-                    .foregroundColor(.brown)
-                    .padding(.top, 2)
+                // ✅ يظهر فقط إذا موجود
+                if let secondaryTitle, let onSecondary {
+                    Button(secondaryTitle) { onSecondary() }
+                        .font(.subheadline)
+                        .foregroundColor(.brown)
+                        .padding(.top, 2)
+                }
             }
             .padding(18)
             .frame(maxWidth: 340)
-            .background(.ultraThinMaterial) // ✅ واضح في Light/Dark
+            .background(Color.white)
             .cornerRadius(16)
             .padding(.horizontal, 24)
         }
@@ -400,7 +433,6 @@ struct AnswerCircle: View {
                 .stroke(ringColor, lineWidth: 6)
                 .frame(width: 90, height: 90)
 
-            // ✅ fallback color (لو AnswerFill مو موجود ما يختفي)
             Circle()
                 .fill(Color("AnswerFill", bundle: .main))
                 .overlay(
@@ -451,9 +483,5 @@ struct TrianglePatternView: View {
     vm.selectedCharacter = .female
     return Majlis(viewModel: vm, region: .western)
         .preferredColorScheme(.light)
-
-    // جرّبي كمان:
-    // return Majlis(viewModel: vm, region: .western)
-    //     .preferredColorScheme(.dark)
 }
 

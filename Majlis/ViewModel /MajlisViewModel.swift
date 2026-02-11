@@ -48,6 +48,10 @@ final class MajlisViewModel: ObservableObject {
     var didAnswerAllCorrect: Bool {
         totalCount > 0 && correctCount == totalCount
     }
+    var progressTotal: Int { 4 }
+
+    var progressCurrent: Int { min(correctCount, progressTotal) }
+
 
     // MARK: - Data Sources
     private let proverbQuestionInternal: Question
