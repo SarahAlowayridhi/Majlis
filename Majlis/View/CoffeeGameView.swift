@@ -24,6 +24,9 @@ struct CoffeeGameView: View {
     // MARK: - Ingredient States
     @State private var circleStates: [String: CoffeeCircleState] = [:]
 
+    // ⭐️ إضافة — تخزين الإجابات الصح المختارة
+    @State private var correctSelections: Set<String> = []
+
     let targetWidth: CGFloat = 0.33
 
     // MARK: - Init
@@ -37,12 +40,21 @@ struct CoffeeGameView: View {
         CoffeeData.options(for: region)
     }
 
+    // ⭐️ إضافة — التحقق هل كل الصح انختاروا
+    var allCorrectChosen: Bool {
+        let correctIDs = coffeeOptions
+            .filter { $0.isCorrect }
+            .map { $0.id }
+
+        return Set(correctIDs) == correctSelections
+    }
+
     // MARK: - Body
     var body: some View {
 
         ZStack {
 
-            // ✅ نفس خلفية المجلس
+            // الخلفية
             Color("background")
                 .ignoresSafeArea()
 
@@ -93,10 +105,18 @@ struct CoffeeGameView: View {
                         .gesture(
                             DragGesture(minimumDistance: 0)
                                 .onChanged { _ in
+
+                                    // ⭐️ الشرط — ما يصب إلا بعد اختيار الصح
+                                    guard allCorrectChosen else { return }
+
                                     tiltDallah()
                                     startFilling()
                                 }
                                 .onEnded { _ in
+
+                                    // ⭐️ الشرط — ما يصب إلا بعد اختيار الصح
+                                    guard allCorrectChosen else { return }
+
                                     resetDallah()
                                     stopFilling()
                                 }
@@ -144,6 +164,7 @@ extension CoffeeGameView {
         if option.isCorrect {
 
             circleStates[option.id] = .correct
+            correctSelections.insert(option.id)   // ⭐️ تخزين الصح
 
         } else {
 
@@ -289,4 +310,3 @@ struct CoffeeAnswerCircle: View {
 #Preview {
     CoffeeGameView(region: .central)
 }
-
