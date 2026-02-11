@@ -42,7 +42,8 @@ struct CoffeeGameView: View {
 
         ZStack {
 
-            Color(red: 0.98, green: 0.96, blue: 0.92)
+            // ✅ نفس خلفية المجلس
+            Color("background")
                 .ignoresSafeArea()
 
             VStack {
@@ -62,8 +63,8 @@ struct CoffeeGameView: View {
                     }
                 }
                 .padding(.top, 140)
-                .opacity(isPouring ? 0 : 1)   // تختفي بس مكانها ثابت
-                .allowsHitTesting(!isPouring) // ما تنضغط وقت الصب
+                .opacity(isPouring ? 0 : 1)
+                .allowsHitTesting(!isPouring)
 
                 // MARK: - Hint
                 Text(hintText)
@@ -158,6 +159,7 @@ extension CoffeeGameView {
         circleStates[option.id] ?? .idle
     }
 }
+
 // MARK: - Hint
 
 extension CoffeeGameView {
