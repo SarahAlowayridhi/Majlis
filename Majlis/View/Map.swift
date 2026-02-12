@@ -1,10 +1,9 @@
 //
 //  Map.swift
-//  Majlis
+//  Map
 //
 //  Created by Ruba Arif on 17/08/1447 AH.
 //
-
 
 import SwiftUI
 
@@ -49,7 +48,7 @@ struct ContentView: View {
                         // MARK: - Icons (Settings & Store)
                         HStack(spacing: 12) {
                             
-                            // زر الإعدادات الذي ينقلك لصفحة SettingsView
+                            // زر الإعدادات
                             NavigationLink(destination: SettingsView()) {
                                 Image(systemName: "gearshape.fill")
                                     .foregroundColor(.white)
@@ -58,8 +57,14 @@ struct ContentView: View {
                             }
                             .buttonStyle(PlainButtonStyle())
 
-                            // زر المتجر
-                            CircleButton(system: "storefront.circle.fill")
+                            // زر المتجر - Navigation to Dallah Selection
+                            NavigationLink(destination: DallahSelectionView()) {
+                                Image(systemName: "storefront.circle.fill")
+                                    .foregroundColor(.white)
+                                    .padding(10)
+                                    .background(Circle().fill(Color.brown))
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                     .padding(.horizontal, 20)
@@ -145,21 +150,6 @@ struct ContentView: View {
                 .scaledToFit()
                 .frame(maxWidth: 300)
         }
-    }
-}
-
-// MARK: - Circle Icon Button (Generic)
-struct CircleButton: View {
-    var system: String
-
-    var body: some View {
-        Button(action: {}) {
-            Image(systemName: system)
-                .foregroundColor(.white)
-                .padding(10)
-                .background(Circle().fill(Color.brown))
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
