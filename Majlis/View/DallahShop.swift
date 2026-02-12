@@ -5,6 +5,7 @@
 //  Created by Ruba Arif on 17/08/1447 AH.
 //
 
+
 import SwiftUI
 
 struct DallahSelectionView: View {
@@ -23,7 +24,7 @@ struct DallahSelectionView: View {
                 // Top
                 HStack {
 
-                    // Level indicator (same toggle place – clear & readable)
+                    // Level indicator
                     ZStack(alignment: .leading) {
 
                         ZStack {
@@ -38,7 +39,7 @@ struct DallahSelectionView: View {
                         }
                         .padding(.leading, 4)
                     }
-                    .frame(width: 80, height: 34) // مساحة التوغل نفسها
+                    .frame(width: 80, height: 34)
 
                     Spacer()
 
@@ -59,6 +60,7 @@ struct DallahSelectionView: View {
                 // Quote Card
                 Text("دلّع نفسك بدله تطيب الخاطر..")
                     .font(.body)
+                    .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                     .padding()
                     .frame(maxWidth: 280)
@@ -115,7 +117,7 @@ struct DallahSelectionView: View {
                 // Bottom Decoration
                 HStack(spacing: 6) {
                     ForEach(0..<15, id: \.self) { _ in
-                        BottomTriangle()
+                        DallahBottomTriangle()
                             .fill(Color.brown)
                             .frame(width: 12, height: 8)
                     }
@@ -126,6 +128,21 @@ struct DallahSelectionView: View {
     }
 }
 
+
+// MARK: - Triangle Shape (Renamed to prevent conflict)
+struct DallahBottomTriangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+
+// MARK: - Preview
 #Preview {
     DallahSelectionView()
 }
