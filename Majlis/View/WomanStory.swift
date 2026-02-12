@@ -8,17 +8,23 @@
 import SwiftUI
 
 struct WomanStory: View {
+    // Inputs
     var name: String
     @ObservedObject var viewModel: MajlisViewModel
+
+    // Navigation
     @State private var goMap: Bool = false
 
+    // Optional callbacks for hosting screen
     var onSkip: (() -> Void)? = nil
     var onFinish: (() -> Void)? = nil
 
+    // Story state
     @State private var index: Int = 0
     @State private var showCaption: Bool = true
     @State private var isDragging: Bool = false
 
+    // MARK: - Page Model
     private struct Page: Identifiable, Equatable {
         let id = UUID()
         let imageName: String
@@ -26,6 +32,7 @@ struct WomanStory: View {
         let showsPrimaryCTA: Bool
     }
 
+    // MARK: - Pages
     private var pages: [Page] {
         [
             Page(imageName: "WomanStory1",
@@ -45,13 +52,16 @@ struct WomanStory: View {
 
     var body: some View {
         ZStack {
+            // Background color asset
             Color("background").ignoresSafeArea()
 
             VStack(spacing: 0) {
+                // MARK: - Top Bar (Skip)
                 topBar
 
                 Spacer(minLength: 0)
 
+                // Main story image with swipe gesture
                 ZStack {
                     storyImage(pages[index].imageName)
                         .transition(.asymmetric(insertion: .opacity.combined(with: .scale(scale: 0.98)),
@@ -61,16 +71,20 @@ struct WomanStory: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
+                // MARK: - Caption
                 captionArea
 
+                // MARK: - Progress Dots
                 progressDots
                     .padding(.top, 8)
                     .padding(.bottom, 16)
 
+                // MARK: - Controls Bar
                 controlsBar
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: index)
         }
+        // Animate caption when index changes
         .onChange(of: index) { _, _ in
             withAnimation(.easeInOut(duration: 0.25)) {
                 showCaption = false
@@ -90,6 +104,7 @@ struct WomanStory: View {
         )
     }
 
+    // MARK: - Top Bar (Skip)
     private var topBar: some View {
         HStack {
             Button(action: {
@@ -115,6 +130,7 @@ struct WomanStory: View {
         }
     }
 
+    // MARK: - Image
     @ViewBuilder
     private func storyImage(_ name: String) -> some View {
         GeometryReader { geo in
@@ -129,6 +145,7 @@ struct WomanStory: View {
         }
     }
 
+    // MARK: - Caption
     @ViewBuilder
     private var captionArea: some View {
         if !pages[index].caption.isEmpty {
@@ -152,6 +169,7 @@ struct WomanStory: View {
         }
     }
 
+    // MARK: - Progress Dots
     private var progressDots: some View {
         HStack(spacing: 8) {
             ForEach(pages.indices, id: \.self) { i in
@@ -166,6 +184,7 @@ struct WomanStory: View {
         .accessibilityValue("\(index + 1) من \(pages.count)")
     }
 
+    // MARK: - Controls Bar
     private var controlsBar: some View {
         HStack(spacing: 12) {
             Button(action: goBack) {
@@ -210,6 +229,7 @@ struct WomanStory: View {
         .padding(.bottom, 18)
     }
 
+    // MARK: - Control Pill
     @ViewBuilder
     private func controlPill(icon: String, flipped: Bool, label: String) -> some View {
         HStack(spacing: 8) {
@@ -238,6 +258,7 @@ struct WomanStory: View {
         .contentShape(Rectangle())
     }
 
+    // MARK: - Gestures
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 15, coordinateSpace: .local)
             .onChanged { _ in
@@ -256,6 +277,7 @@ struct WomanStory: View {
             }
     }
 
+    // MARK: - Navigation Helpers
     private func goForward() {
         guard index < pages.count - 1 else { return }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
