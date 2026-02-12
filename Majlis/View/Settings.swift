@@ -24,6 +24,10 @@ struct SettingsView: View {
     @State private var supportMessage = ""
     @State private var showSentAlert = false
     
+    // Name editing
+    @State private var tempName: String = ""
+    @State private var showEmptyNameAlert = false
+    
     // MARK: - Colors
     let backgroundColor = Color(red: 0.99, green: 0.92, blue: 0.78)
     let buttonColor = Color(red: 0.46, green: 0.32, blue: 0.22)
@@ -72,6 +76,8 @@ struct SettingsView: View {
                         icon: "pencil",
                         color: buttonColor
                     ) {
+                        // preload current stored name into temp buffer
+                        tempName = userName
                         activeSheet = .name
                     }
                     
@@ -109,6 +115,12 @@ struct SettingsView: View {
         } message: {
             Text("شكراً لتواصلك معنا! سيتم مراجعة رسالتك.")
         }
+        // Alert للاسم الفارغ
+        .alert("الاسم غير صالح", isPresented: $showEmptyNameAlert) {
+            Button("حسناً", role: .cancel) { }
+        } message: {
+            Text("رجاءً اكتب اسمًا صحيحًا.")
+        }
     }
     
     // MARK: - Sheet تغيير الاسم
@@ -121,26 +133,55 @@ struct SettingsView: View {
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(buttonColor)
                 
-                TextField("اكتب اسمك هنا", text: $userName)
+                TextField("اكتب اسمك هنا", text: $tempName)
                     .padding()
                     .background(Color.white)
                     .cornerRadius(15)
                     .padding(.horizontal)
                     .multilineTextAlignment(.trailing)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
                 
-                Button("حفظ") {
-                    activeSheet = nil
+                HStack(spacing: 12) {
+                    Button("إلغاء") {
+                        // discard changes
+                        tempName = userName
+                        activeSheet = nil
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 55)
+                    .background(Color.gray.opacity(0.5))
+                    .foregroundColor(.white)
+                    .cornerRadius(25)
+                    
+                    Button("حفظ") {
+                        saveName()
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 55)
+                    .background(isValidTempName ? buttonColor : buttonColor.opacity(0.5))
+                    .foregroundColor(.white)
+                    .cornerRadius(25)
+                    .disabled(!isValidTempName)
                 }
-                .frame(maxWidth: .infinity, minHeight: 55)
-                .background(buttonColor)
-                .foregroundColor(.white)
-                .cornerRadius(25)
                 .padding(.horizontal)
                 
                 Spacer()
             }
             .padding(.top, 40)
         }
+    }
+    
+    private var isValidTempName: Bool {
+        !tempName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    private func saveName() {
+        let trimmed = tempName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            showEmptyNameAlert = true
+            return
+        }
+        userName = trimmed
+        activeSheet = nil
     }
     
     // MARK: - Sheet الدعم (نموذج رسائل)
