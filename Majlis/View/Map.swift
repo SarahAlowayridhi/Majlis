@@ -38,7 +38,8 @@ struct ContentView: View {
                                 .scaledToFit()
                                 .frame(width: 42, height: 42)
 
-                            Text("1")
+                            // Dynamic level from shared VM
+                            Text("\(majlisVM.level)")
                                 .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(.black)
                         }
@@ -58,7 +59,7 @@ struct ContentView: View {
                             .buttonStyle(PlainButtonStyle())
 
                             // زر المتجر - Navigation to Dallah Selection
-                            NavigationLink(destination: DallahSelectionView()) {
+                            NavigationLink(destination: DallahSelectionView(majlisVM: majlisVM)) {
                                 Image(systemName: "storefront.circle.fill")
                                     .foregroundColor(.white)
                                     .padding(10)
@@ -171,3 +172,4 @@ struct BottomTriangle: Shape {
     vm.selectedCharacter = .female
     return ContentView(majlisVM: vm)
 }
+

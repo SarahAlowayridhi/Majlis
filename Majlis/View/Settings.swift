@@ -8,6 +8,9 @@ import SwiftUI
 
 struct SettingsView: View {
     
+    // Dismiss for custom back button
+    @Environment(\.dismiss) private var dismiss
+    
     // MARK: - Sheet Type
     enum ActiveSheet: Identifiable {
         case name
@@ -43,7 +46,7 @@ struct SettingsView: View {
                 HStack {
                     Spacer()
                     Button {
-                        // back action
+                        dismiss() // go back to Map
                     } label: {
                         Image(systemName: "chevron.right")
                             .foregroundColor(.white)
@@ -100,6 +103,8 @@ struct SettingsView: View {
                     .frame(height: 22)
             }
         }
+        // Hide the default system back button, like DallahSelectionView
+        .navigationBarBackButtonHidden(true)
         // Sheet واحد فقط
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
