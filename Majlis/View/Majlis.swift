@@ -178,6 +178,8 @@ struct Majlis: View {
                 primaryTitle: perfect ? "الانتقال للخريطة" : "إعادة المحاولة",
                 onPrimary: {
                     if perfect {
+                        // ✅ Mark region completed once on perfect finish
+                        viewModel.markRegionCompleted(region)
                         dismiss()                 // ✅ يرجع للخريطة
                     } else {
                         viewModel.restartSession()

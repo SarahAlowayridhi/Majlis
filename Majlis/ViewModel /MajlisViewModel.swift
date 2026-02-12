@@ -28,6 +28,27 @@ final class MajlisViewModel: ObservableObject {
     @AppStorage("userName") private var storedName: String = ""
     @AppStorage("selectedCharacterRawValue") private var storedCharacterRaw: String = ""
 
+    // ✅ Progress persistence (finished regions)
+    // We store raw values in AppStorage to persist across launches.
+    @AppStorage("finishedRegionRawValues") private var finishedRegionRawValuesStorage: String = "" // comma-separated raw values
+
+    // Expose finished regions as a Set<Region>
+    var finishedRegions: Set<Region> {
+        get {
+            let parts = finishedRegionRawValuesStorage.split(separator: ",").map { String($0) }
+            let regions = parts.compactMap { Region(rawValue: $0) }
+            return Set(regions)
+        }
+        set {
+            let raws = newValue.map { $0.rawValue }.sorted()
+            finishedRegionRawValuesStorage = raws.joined(separator: ",")
+            objectWillChange.send()
+        }
+    }
+
+    // Public level derived from unique finished regions (0...5)
+    var level: Int { finishedRegions.count }
+
     // MARK: - Session Flow
     enum Step: Equatable {
         case coffeeHintChoices
@@ -255,6 +276,16 @@ final class MajlisViewModel: ObservableObject {
 
         // باقي الخيارات
         return .idle
+    }
+
+    // MARK: - Progress updates
+    func markRegionCompleted(_ region: Region) {
+        var set = finishedRegions
+        let inserted = set.insert(region).inserted
+        if inserted {
+            finishedRegions = set // persists via setter
+        }
+        // If already present, do nothing (level won’t inflate).
     }
 }
 

@@ -10,7 +10,9 @@ import SwiftUI
 
 struct DallahSelectionView: View {
 
+    @ObservedObject var majlisVM: MajlisViewModel
     @State private var selectedPage = 0
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ZStack {
@@ -33,7 +35,8 @@ struct DallahSelectionView: View {
                                 .scaledToFit()
                                 .frame(width: 52, height: 36)
 
-                            Text("1")
+                            // Dynamic level from shared VM
+                            Text("\(majlisVM.level)")
                                 .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(.black)
                         }
@@ -43,14 +46,15 @@ struct DallahSelectionView: View {
 
                     Spacer()
 
-                    // Back button
-                    Button(action: {}) {
-                        Image(systemName: "chevron.left")
+                    // Back button (brown) – dismiss the parent NavigationStack
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "chevron.right")
                             .foregroundColor(.white)
                             .padding(12)
                             .background(Color.brown)
                             .clipShape(Circle())
                     }
+                    .accessibilityLabel("Back")
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
@@ -125,6 +129,8 @@ struct DallahSelectionView: View {
                 .padding(.bottom, 12)
             }
         }
+        // Hide the default system back button so only the brown one appears
+        .navigationBarBackButtonHidden(true)
     }
 }
 
@@ -144,5 +150,5 @@ struct DallahBottomTriangle: Shape {
 
 // MARK: - Preview
 #Preview {
-    DallahSelectionView()
+    DallahSelectionView(majlisVM: MajlisViewModel())
 }
