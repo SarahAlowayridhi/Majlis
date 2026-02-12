@@ -106,9 +106,9 @@ enum QuestionsBank {
                 foodQuestion: Question(
                     text: "أكلة تنأكل حلوة، أسويها من عجين متوسط الاستواء وأغطّيها بالسمن والعسل، وأحيانًا أجلس جنبها رضيفه أو تمر…",
                     answers: [
-                        Answer(text: "مثال 1", isCorrect: true),
-                        Answer(text: "مثال 2", isCorrect: false),
-                        Answer(text: "مثال 3", isCorrect: false)
+                        Answer(text: "عريكه", isCorrect: true),
+                        Answer(text: "معصوب", isCorrect: false),
+                        Answer(text: "حنيني", isCorrect: false)
                     ]
                 )
             )
