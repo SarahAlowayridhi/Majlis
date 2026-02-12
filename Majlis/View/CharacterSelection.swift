@@ -35,7 +35,6 @@ struct CharacterSelection: View {
                         .fill(Color.white.opacity(0.9))
                         .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
 
-                    // TextField with custom darker placeholder overlay
                     ZStack {
                         TextField("", text: $viewModel.name)
                             .multilineTextAlignment(.center)
@@ -65,9 +64,9 @@ struct CharacterSelection: View {
                 .padding(.top, 44)
                 .animation(.spring(response: 0.35, dampingFraction: 0.8, blendDuration: 0.2), value: selectedCharacter)
 
-                // Standalone button that sets state
                 Button(action: {
                     guard canProceed, let chosen = selectedCharacter else { return }
+                    viewModel.persistProfile(name: trimmedName, character: chosen)
                     viewModel.selectedCharacter = chosen
                     goNext = true
                 }) {
@@ -98,7 +97,6 @@ struct CharacterSelection: View {
             }
             .padding(.bottom, 48)
         }
-        // Hidden NavigationLink driven by goNext
         .background(
             NavigationLink(isActive: $goNext) {
                 Group {
@@ -116,6 +114,7 @@ struct CharacterSelection: View {
                 .hidden()
         )
         .onAppear {
+            viewModel.loadPersistedProfile()
             if let existing = viewModel.selectedCharacter {
                 selectedCharacter = existing
             }
@@ -160,7 +159,6 @@ struct CharacterSelection: View {
 }
 
 #Preview {
-    // Important: wrap in NavigationStack for the preview
     NavigationStack {
         CharacterSelection(viewModel: MajlisViewModel())
     }

@@ -23,6 +23,11 @@ final class MajlisViewModel: ObservableObject {
     @Published var selectedCharacter: CharacterType? = nil
     @Published var goMajlis: Bool = false
 
+    // MARK: - Persistence Keys
+    @AppStorage("onboardingCompleted") private var onboardingCompleted: Bool = false
+    @AppStorage("userName") private var storedName: String = ""
+    @AppStorage("selectedCharacterRawValue") private var storedCharacterRaw: String = ""
+
     // MARK: - Session Flow
     enum Step: Equatable {
         case coffeeHintChoices
@@ -52,7 +57,6 @@ final class MajlisViewModel: ObservableObject {
 
     var progressCurrent: Int { min(correctCount, progressTotal) }
 
-
     // MARK: - Data Sources
     private let proverbQuestionInternal: Question
 
@@ -69,12 +73,40 @@ final class MajlisViewModel: ObservableObject {
         self.region = region
         self.content = QuestionsBank.content(for: region)
         self.proverbQuestionInternal = self.content.proverbQuestion
+
+        // Load persisted profile if available
+        loadPersistedProfile()
     }
 
     /// للـ Preview فقط
     convenience init() {
         self.init(region: .central)
     }
+
+    // MARK: - Profile Persistence
+    func loadPersistedProfile() {
+        // Name
+        if !storedName.isEmpty {
+            name = storedName
+        }
+        // Character
+        if let c = CharacterType(rawValue: storedCharacterRaw) {
+            selectedCharacter = c
+        }
+    }
+
+    func persistProfile(name: String, character: CharacterType) {
+        storedName = name
+        storedCharacterRaw = character.rawValue
+        self.name = name
+        self.selectedCharacter = character
+    }
+
+    func markOnboardingCompleted() {
+        onboardingCompleted = true
+    }
+
+    var isOnboardingCompleted: Bool { onboardingCompleted }
 
     // MARK: - Computed
     var characterImageName: String {

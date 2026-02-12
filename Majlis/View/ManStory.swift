@@ -94,6 +94,7 @@ struct ManStory: View {
     private var topBar: some View {
         HStack {
             Button(action: {
+                viewModel.markOnboardingCompleted()
                 goMap = true
                 onSkip?()
             }) {
@@ -182,6 +183,7 @@ struct ManStory: View {
 
             if isLast {
                 Button(action: {
+                    viewModel.markOnboardingCompleted()
                     goMap = true
                     onFinish?()
                 }) {
