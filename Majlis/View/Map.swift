@@ -5,6 +5,7 @@
 //  Created by Ruba Arif on 17/08/1447 AH.
 //
 
+
 import SwiftUI
 
 struct ContentView: View {
@@ -45,9 +46,19 @@ struct ContentView: View {
 
                         Spacer()
 
-                        // Icons
+                        // MARK: - Icons (Settings & Store)
                         HStack(spacing: 12) {
-                            CircleButton(system: "gearshape.fill")
+                            
+                            // زر الإعدادات الذي ينقلك لصفحة SettingsView
+                            NavigationLink(destination: SettingsView()) {
+                                Image(systemName: "gearshape.fill")
+                                    .foregroundColor(.white)
+                                    .padding(10)
+                                    .background(Circle().fill(Color.brown))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+
+                            // زر المتجر
                             CircleButton(system: "storefront.circle.fill")
                         }
                     }
@@ -109,13 +120,11 @@ struct ContentView: View {
                     .padding(.bottom, 12)
                 }
             }
-            // MARK: - Navigation
+            // MARK: - Navigation for Regions
             .navigationDestination(item: $viewModel.selectedRegion) { region in
 
-                // ✅ أنشئ VM جديد مرتبط بالمنطقة المختارة
                 let sessionVM = MajlisViewModel(region: region)
 
-                // ✅ انقل بيانات الشخصية/الاسم من VM القادم من اختيار الشخصية
                 sessionVM.name = majlisVM.name
                 sessionVM.selectedCharacter = majlisVM.selectedCharacter
 
@@ -139,7 +148,7 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Circle Icon Button
+// MARK: - Circle Icon Button (Generic)
 struct CircleButton: View {
     var system: String
 
@@ -172,4 +181,3 @@ struct BottomTriangle: Shape {
     vm.selectedCharacter = .female
     return ContentView(majlisVM: vm)
 }
-
