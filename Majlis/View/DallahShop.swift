@@ -5,7 +5,6 @@
 //  Created by Ruba Arif on 17/08/1447 AH.
 //
 
-
 import SwiftUI
 
 struct DallahSelectionView: View {
@@ -13,6 +12,13 @@ struct DallahSelectionView: View {
     @ObservedObject var majlisVM: MajlisViewModel
     @State private var selectedPage = 0
     @Environment(\.dismiss) private var dismiss
+
+    // Helper: Is the current dallah available?
+    private var isSilverLocked: Bool { majlisVM.level < 3 }
+    private var isSelectedLocked: Bool { selectedPage == 1 && isSilverLocked }
+
+    // For shake animation feedback if needed
+    @State private var shakeOffset: CGFloat = 0
 
     var body: some View {
         ZStack {
@@ -88,18 +94,50 @@ struct DallahSelectionView: View {
 
                 // Dallah Swipe
                 TabView(selection: $selectedPage) {
-
+                    // 1. Regular Dallah
                     Image("dallah")
                         .resizable()
                         .scaledToFit()
                         .frame(maxWidth: 220)
                         .tag(0)
+                        .overlay(
+                            EmptyView()
+                        )
+                        .accessibilityLabel("دلة عادية")
 
-                    Image("silver")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: 220)
-                        .tag(1)
+                    // 2. Silver Dallah (locked until level 3)
+                    ZStack {
+                        Image("silver")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 220)
+                            .brightness(isSilverLocked ? -0.2 : 0)
+                            .opacity(isSilverLocked ? 0.6 : 1.0)
+                        // Overlay lock if locked
+                        if isSilverLocked {
+                            Rectangle()
+                                .fill(Color.black.opacity(0.34))
+                                .cornerRadius(18)
+                                .frame(maxWidth: 220)
+                            VStack(spacing: 10) {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 36, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .shadow(radius: 3)
+                                Text("يفتح عند المستوى ٣")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.black.opacity(0.55))
+                                    )
+                            }
+                        }
+                    }
+                    .tag(1)
+                    .accessibilityLabel(isSilverLocked ? "دلة فضية (مقفلة حتى المستوى ٣)" : "دلة فضية")
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: 280)
@@ -107,13 +145,50 @@ struct DallahSelectionView: View {
                 Spacer()
 
                 // Select Button
-                Button(action: {}) {
+                Button(action: {
+                    if isSelectedLocked {
+                        // Animate shake as feedback
+                        withAnimation(.default) {
+                            shakeOffset = -18
+                        }
+                        withAnimation(Animation.default.delay(0.1)) {
+                            shakeOffset = 16
+                        }
+                        withAnimation(Animation.default.delay(0.2)) {
+                            shakeOffset = 0
+                        }
+                        // Optionally: add haptic feedback
+                        let impact = UIImpactFeedbackGenerator(style: .medium)
+                        impact.impactOccurred()
+                    } else {
+                        // Perform the selection (add logic here if needed)
+                        // E.g., majlisVM.selectedDallah = selectedPage
+                        // Possibly dismiss or show confirmation
+                    }
+                }) {
                     Text("اختر")
                         .foregroundColor(.white)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 12)
-                        .background(Color.brown)
+                        .background(
+                            isSelectedLocked ? Color.gray : Color.brown
+                        )
                         .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(isSelectedLocked ? Color.gray.opacity(0.7) : Color.brown, lineWidth: isSelectedLocked ? 1 : 0)
+                        )
+                }
+                .offset(x: shakeOffset)
+                .disabled(isSelectedLocked)
+                .opacity(isSelectedLocked ? 0.7 : 1.0)
+
+                if isSelectedLocked {
+                    Text("عليك أن تصل للمستوى ٣ لاستخدام هذه الدلة")
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                        .padding(.top, 4)
+                        .transition(.opacity)
                 }
 
                 Spacer(minLength: 20)

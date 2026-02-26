@@ -17,6 +17,13 @@ struct ContentView: View {
 
     // MARK: - UI State
     @State private var selectedPage = 0
+    
+    // MARK: - Swipe Hint Animation
+    @State private var handOffset: CGFloat = 24
+    @State private var handOpacity: Double = 1.0
+    
+    // MARK: - Show Swipe Hint (per session)
+    @State private var showSwipeHint = true
 
     var body: some View {
         NavigationStack {
@@ -73,6 +80,37 @@ struct ContentView: View {
 
                     Spacer(minLength: 50)
 
+                    // MARK: - Swipe Hint
+                    if showSwipeHint {
+                        HStack(spacing: 8) {
+                            Text("اسحب لاختيار منطقة أخرى")
+                                .font(.footnote)
+                                .foregroundColor(.brown)
+                                .bold()
+                            ZStack {
+                                Image(systemName: "hand.point.up.left.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.brown)
+                                    .offset(x: handOffset)
+                                    .opacity(handOpacity)
+                                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: false), value: handOffset)
+                                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: false), value: handOpacity)
+                            }
+                            .frame(width: 36)
+                        }
+                        .padding(.bottom, 6)
+                        .transition(.opacity)
+                        .onAppear {
+                            handOffset = 24      // Start right
+                            handOpacity = 1.0
+                            // Animate the "swipe" gesture from right to left
+                            withAnimation {
+                                handOffset = -24  // Move hand to the left
+                                handOpacity = 0.2
+                            }
+                        }
+                    }
+
                     // MARK: - Map Swipe (Regions)
                     TabView(selection: $selectedPage) {
 
@@ -98,6 +136,13 @@ struct ContentView: View {
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     .frame(height: 380)
+                    .onChange(of: selectedPage) { _, newValue in
+                        if showSwipeHint && newValue != 0 {
+                            withAnimation {
+                                showSwipeHint = false
+                            }
+                        }
+                    }
 
                     // MARK: - Swipe Indicator Dots
                     HStack(spacing: 8) {
