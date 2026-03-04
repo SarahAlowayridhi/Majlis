@@ -29,8 +29,8 @@ struct ContentView: View {
         NavigationStack {
             ZStack {
 
-                // Background
-                Color(red: 0.99, green: 0.93, blue: 0.78)
+                // Background (from Assets)
+                Color("background")
                     .ignoresSafeArea()
 
                 VStack {
@@ -159,16 +159,6 @@ struct ContentView: View {
                     .padding(.top, 8)
 
                     Spacer()
-
-                    // MARK: - Bottom Decoration
-                    HStack(spacing: 6) {
-                        ForEach(0..<15, id: \.self) { _ in
-                            BottomTriangle()
-                                .fill(Color.brown)
-                                .frame(width: 12, height: 8)
-                        }
-                    }
-                    .padding(.bottom, 12)
                 }
             }
             // MARK: - Navigation for Regions
@@ -217,4 +207,3 @@ struct BottomTriangle: Shape {
     vm.selectedCharacter = .female
     return ContentView(majlisVM: vm)
 }
-
