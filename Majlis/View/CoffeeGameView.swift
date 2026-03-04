@@ -14,6 +14,14 @@ struct CoffeeGameView: View {
 
     @Environment(\.dismiss) private var dismiss
 
+    // Persisted dallah selection (default to "regular")
+    @AppStorage("selectedDallahRawValue") private var selectedDallahRaw: String = DallahType.regular.rawValue
+
+    // Resolve current dallah image safely
+    private var dallahImageName: String {
+        selectedDallahRaw == DallahType.silver.rawValue ? "silver" : "dallah"
+    }
+
     // MARK: - Pour States
     @State private var fillAmount: CGFloat = 0.0
     @State private var fillTimer: Timer?
@@ -95,7 +103,7 @@ struct CoffeeGameView: View {
                         .frame(width: 90)
                         .offset(x: 20, y: 10)
 
-                    Image("dallah")
+                    Image(dallahImageName)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 240)
@@ -310,3 +318,4 @@ struct CoffeeAnswerCircle: View {
 #Preview {
     CoffeeGameView(region: .central)
 }
+

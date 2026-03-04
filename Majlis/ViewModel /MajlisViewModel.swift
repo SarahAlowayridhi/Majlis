@@ -9,6 +9,12 @@
 import SwiftUI
 import Combine
 
+// MARK: - Dallah Selection
+enum DallahType: String, CaseIterable {
+    case regular
+    case silver
+}
+
 @MainActor
 final class MajlisViewModel: ObservableObject {
 
@@ -31,6 +37,12 @@ final class MajlisViewModel: ObservableObject {
     // ✅ Progress persistence (finished regions)
     // We store raw values in AppStorage to persist across launches.
     @AppStorage("finishedRegionRawValues") private var finishedRegionRawValuesStorage: String = "" // comma-separated raw values
+
+    // ✅ Persisted dallah selection (defaults to .regular)
+    @AppStorage("selectedDallahRawValue") private var storedDallahRaw: String = DallahType.regular.rawValue
+    @Published var selectedDallah: DallahType = .regular {
+        didSet { storedDallahRaw = selectedDallah.rawValue }
+    }
 
     // Expose finished regions as a Set<Region>
     var finishedRegions: Set<Region> {
@@ -113,6 +125,12 @@ final class MajlisViewModel: ObservableObject {
         // Character
         if let c = CharacterType(rawValue: storedCharacterRaw) {
             selectedCharacter = c
+        }
+        // Dallah selection (fallback to .regular)
+        if let d = DallahType(rawValue: storedDallahRaw) {
+            selectedDallah = d
+        } else {
+            selectedDallah = .regular
         }
     }
 

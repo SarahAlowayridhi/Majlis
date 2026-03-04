@@ -17,6 +17,15 @@ struct DallahSelectionView: View {
     private var isSilverLocked: Bool { majlisVM.level < 3 }
     private var isSelectedLocked: Bool { selectedPage == 1 && isSilverLocked }
 
+    // Currently visible page's dallah type
+    private var currentPageType: DallahType { selectedPage == 1 ? .silver : .regular }
+
+    // Already selected?
+    private var isAlreadySelected: Bool { majlisVM.selectedDallah == currentPageType }
+
+    // Final disabled state for the button
+    private var isSelectDisabled: Bool { isSelectedLocked || isAlreadySelected }
+
     // For shake animation feedback if needed
     @State private var shakeOffset: CGFloat = 0
 
@@ -100,9 +109,11 @@ struct DallahSelectionView: View {
                         .scaledToFit()
                         .frame(maxWidth: 220)
                         .tag(0)
-                        .overlay(
-                            EmptyView()
-                        )
+                        .overlay(alignment: .topTrailing) {
+                            if majlisVM.selectedDallah == .regular {
+                                selectedBadge()
+                            }
+                        }
                         .accessibilityLabel("دلة عادية")
 
                     // 2. Silver Dallah (locked until level 3)
@@ -113,6 +124,7 @@ struct DallahSelectionView: View {
                             .frame(maxWidth: 220)
                             .brightness(isSilverLocked ? -0.2 : 0)
                             .opacity(isSilverLocked ? 0.6 : 1.0)
+
                         // Overlay lock if locked
                         if isSilverLocked {
                             Rectangle()
@@ -136,6 +148,11 @@ struct DallahSelectionView: View {
                             }
                         }
                     }
+                    .overlay(alignment: .topTrailing) {
+                        if majlisVM.selectedDallah == .silver {
+                            selectedBadge()
+                        }
+                    }
                     .tag(1)
                     .accessibilityLabel(isSilverLocked ? "دلة فضية (مقفلة حتى المستوى ٣)" : "دلة فضية")
                 }
@@ -157,31 +174,30 @@ struct DallahSelectionView: View {
                         withAnimation(Animation.default.delay(0.2)) {
                             shakeOffset = 0
                         }
-                        // Optionally: add haptic feedback
-                        let impact = UIImpactFeedbackGenerator(style: .medium)
-                        impact.impactOccurred()
-                    } else {
-                        // Perform the selection (add logic here if needed)
-                        // E.g., majlisVM.selectedDallah = selectedPage
-                        // Possibly dismiss or show confirmation
+                        // Haptic
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    } else if !isAlreadySelected {
+                        // Persist selection in the shared VM
+                        majlisVM.selectedDallah = currentPageType
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     }
                 }) {
-                    Text("اختر")
+                    Text(isAlreadySelected ? "محددة" : "اختر")
                         .foregroundColor(.white)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 12)
                         .background(
-                            isSelectedLocked ? Color.gray : Color.brown
+                            isSelectDisabled ? Color.gray : Color.brown
                         )
                         .cornerRadius(20)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
-                                .stroke(isSelectedLocked ? Color.gray.opacity(0.7) : Color.brown, lineWidth: isSelectedLocked ? 1 : 0)
+                                .stroke(isSelectDisabled ? Color.gray.opacity(0.7) : Color.brown, lineWidth: isSelectDisabled ? 1 : 0)
                         )
                 }
                 .offset(x: shakeOffset)
-                .disabled(isSelectedLocked)
-                .opacity(isSelectedLocked ? 0.7 : 1.0)
+                .disabled(isSelectDisabled)
+                .opacity(isSelectDisabled ? 0.7 : 1.0)
 
                 if isSelectedLocked {
                     Text("عليك أن تصل للمستوى ٣ لاستخدام هذه الدلة")
@@ -206,6 +222,29 @@ struct DallahSelectionView: View {
         }
         // Hide the default system back button so only the brown one appears
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            // Initialize the pager to the currently selected dallah
+            selectedPage = (majlisVM.selectedDallah == .silver) ? 1 : 0
+        }
+    }
+
+    // MARK: - Selected Badge
+    @ViewBuilder
+    private func selectedBadge() -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.white)
+            Text("مختارة")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.green.opacity(0.9))
+        .clipShape(Capsule())
+        .padding(.top, 6)
+        .padding(.trailing, 10)
+        .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 1)
     }
 }
 
@@ -227,3 +266,4 @@ struct DallahBottomTriangle: Shape {
 #Preview {
     DallahSelectionView(majlisVM: MajlisViewModel())
 }
+

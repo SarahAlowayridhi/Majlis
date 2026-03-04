@@ -21,6 +21,7 @@ struct ContentView: View {
     // MARK: - Swipe Hint Animation
     @State private var handOffset: CGFloat = 24
     @State private var handOpacity: Double = 1.0
+    @State private var animateHand: Bool = false
     
     // MARK: - Show Swipe Hint (per session)
     @State private var showSwipeHint = true
@@ -91,22 +92,21 @@ struct ContentView: View {
                                 Image(systemName: "hand.point.up.left.fill")
                                     .font(.title2)
                                     .foregroundColor(.brown)
-                                    .offset(x: handOffset)
-                                    .opacity(handOpacity)
-                                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: false), value: handOffset)
-                                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: false), value: handOpacity)
+                                    .offset(x: animateHand ? -24 : 24)
+                                    .opacity(animateHand ? 0.2 : 1.0)
                             }
                             .frame(width: 36)
                         }
                         .padding(.bottom, 6)
                         .transition(.opacity)
                         .onAppear {
-                            handOffset = 24      // Start right
+                            // Initialize once and start a stable repeating animation
+                            handOffset = 24
                             handOpacity = 1.0
-                            // Animate the "swipe" gesture from right to left
-                            withAnimation {
-                                handOffset = -24  // Move hand to the left
-                                handOpacity = 0.2
+                            if !animateHand {
+                                withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+                                    animateHand = true
+                                }
                             }
                         }
                     }
